@@ -1,2 +1,2 @@
 # IP2Location-pfSense
-pfSense dashboard widget and backend caching service written in Go and using Redis to retrieve and display "live" geolocation data based on pfSense firewall logs. 
+pfSense dashboard widget and backend service written in Go, using Redis cache for the retrieval and display of "live" geolocation data provided by the IP2Location.io API service, for connections recorded in the firewall logs. An interactive map displays geolocaton information as a dashboard widget on the pfSense webConfigurator screen and optionally as an standalone page, hosted by the backend service. 
