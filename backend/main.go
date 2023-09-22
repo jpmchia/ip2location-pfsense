@@ -2,25 +2,19 @@ package main
 
 import (
 	"flag"
-	"ip2location-pfsense/cmd"
-	. "ip2location-pfsense/util"
-	"log"
+
+	"github.com/jpmchia/ip2location-pfsense/backend/cmd"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 )
 
 var appName string = "IP2Location-pfSense"
 
 func main() {
-	log.Default().Printf("[main] Starting %v ...", appName)
+	util.LogDebug("[main] Starting %v ...", appName)
 
 	flag.Parse()
-	debugPtr := flag.Bool("debug", false, "verbose output")
 
-	if *debugPtr {
-		Debug = true
-		LogDebug("[main] Debugging enabled")
-	}
-
-	LogDebug("[main] Initialising service ...")
+	util.LogDebug("[main] Initialising service ...")
 
 	cmd.Execute()
 }

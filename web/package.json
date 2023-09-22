@@ -1,0 +1,9 @@
+{
+  "name": "ip2location-pfsense",
+  "version": "0.0.1",
+  "description": "IP2Location backend service and widget for pfSense",
+  "main": "index.js",
+  "repository": "https://github.com/jpmchia/IP2Location-pfSense",
+  "author": "jpmchia@gmail.com",
+  "license": "MIT"
+}

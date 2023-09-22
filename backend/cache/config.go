@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"ip2location-pfsense/config"
-	. "ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/spf13/viper"
 )
@@ -15,28 +15,29 @@ type RedisCacheConfig struct {
 }
 
 const RedisConfigKey = "redis"
-const ip2LocationKey = "redis.ip2location"
 
+// const ip2LocationKey = "redis.ip2location"
 // const pfSenseKey = "redis.pfsense"
 
 var configuration *viper.Viper
 
 func LoadConfiguration(subkey string) (RedisCacheConfig, error) {
-	_, err := config.LoadConfiguration()
-	HandleFatalError(err, "[cache] Unable to load configuration")
+	//_, err := config.LoadConfiguration()
+	//util.HandleFatalError(err, "[cache] Unable to load configuration")
+	config.Configure()
 
-	// redisConfigKey := options.Redis.Key
-	configuration = config.GetConfig()
-	LogDebug("[cache] Loading configuration for %s", subkey)
-	LogDebug("[cache] Configuration: %v", configuration.AllSettings())
+	configuration = config.ConfigProvider()
+
+	util.LogDebug("[cache] Loading configuration for %s", subkey)
+	util.LogDebug("[cache] Configuration: %v", configuration.AllSettings())
 
 	subconfig := configuration.Sub(subkey)
 	if subconfig == nil {
-		HandleFatalError(nil, "[cache] Unable to find configuration for %s", subkey)
+		util.HandleFatalError(nil, "[cache] Unable to find configuration for %s", subkey)
 	}
 
 	redisConfig, err := loadConfig(subconfig)
-	HandleFatalError(err, "[cache] Unable to load configuration for %s", subkey)
+	util.HandleFatalError(err, "[cache] Unable to load configuration for %s", subkey)
 
 	return *redisConfig, err
 }

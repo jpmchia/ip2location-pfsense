@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	. "ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/spf13/viper"
 )
@@ -31,7 +31,7 @@ type Provider interface {
 
 var Config Options
 
-const appName string = "IP2Location-pfSense"
+const appName string = "github.com/jpmchia/ip2location-pfsense/backend"
 
 var CfgFile string = "config.yaml"
 var defaultConfig *viper.Viper
@@ -39,38 +39,56 @@ var defaultConfig *viper.Viper
 // Default initialiser for the applicaiton's configuration
 func init() {
 
-	LogDebug("Initialising configuration")
+	util.LogDebug("Initialising configuration")
 
-	_, err := LoadConfiguration()
-	HandleFatalError(err, "Unable to unmarshal configuration:\n")
+	Configure()
+}
+
+func Configure() {
+	// Load the default configuration
+	defaultConfig = initViperConfig(appName)
+
+	// Set and load additional configuration locations
+	setConfigLocations(CfgFile)
+
+	// Read the configuration file
+	err := defaultConfig.ReadInConfig()
+	util.HandleError(err, "Unable to read configuration:\n")
+
+	// Unmarshal the configuration into the Config struct
+	err = defaultConfig.Unmarshal(&Config)
+	util.HandleError(err, "Unable to unmarshal configuration:\n")
 }
 
 // Config returns a default config provider
-func ConfigProvider() Provider {
-	return defaultConfig
-}
-func GetConfig() *viper.Viper {
+func ConfigProvider() *viper.Viper {
 	return defaultConfig
 }
 
-func LoadConfiguration() (Options, error) {
-
-	defaultConfig = initViperConfig(appName)
-
-	setConfigLocations(CfgFile)
-
-	err := defaultConfig.ReadInConfig()
-	HandleFatalError(err, "Unable to read configuration:\n")
-
-	err = defaultConfig.Unmarshal(&Config)
-	HandleFatalError(err, "Unable to unmarshal configuration:\n")
-	return Config, err
+func GetConfiguration() Options {
+	err := defaultConfig.Unmarshal(&Config)
+	util.HandleError(err, "Unable to unmarshal configuration:\n")
+	return Config
 }
+
+// func LoadConfiguration() (Options, error) {
+// 	defaultConfig = initViperConfig(appName)
+// 	setConfigLocations(CfgFile)
+// 	err := defaultConfig.ReadInConfig()
+// 	if err != nil {
+// 		util.HandleError(err, "Unable to read configuration:\n")
+// 		return Config, err
+// 	}
+// 	util.LogDebug("Using configuration file: %s", defaultConfig.ConfigFileUsed())
+// 	err = defaultConfig.Unmarshal(&Config)
+// 	util.HandleError(err, "Unable to unmarshal configuration:\n")
+// 	return Config, err
+// }
 
 // LoadConfigProvider returns a configured viper instance
-func LoadConfigProvider(appName string) Provider {
-	return initViperConfig(appName)
-}
+// func LoadConfigProvider(appName string) Provider {
+// 	return initViperConfig(appName)
+// }
 
 func SetValue(key string, value interface{}) {
 	defaultConfig.Set(key, value)
@@ -79,7 +97,8 @@ func SetValue(key string, value interface{}) {
 // SetConfigFile sets the config file to use and reloads the configuraton
 func SetConfigFile(file string) {
 	setConfigLocations(file)
-
+	err := defaultConfig.ReadInConfig()
+	util.HandleError(err, "Unable to read configuration:\n")
 }
 
 // Initialises viper with default values
@@ -128,7 +147,7 @@ func initViperConfig(appName string) *viper.Viper {
 
 // SetConfigLocations sets the locations to search for the configuration file
 func setConfigLocations(file string) {
-	LogDebug("Setting config locations")
+	util.LogDebug("Setting config locations")
 	CfgFile = file
 	// Use config file from the flag.
 	defaultConfig.SetConfigType("yaml")
@@ -138,7 +157,7 @@ func setConfigLocations(file string) {
 	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/opt/%s", appName))
 	home, err := os.UserHomeDir()
-	HandleError(err, "Unable to determine user's home directory")
+	util.HandleError(err, "Unable to determine user's home directory")
 	defaultConfig.AddConfigPath(fmt.Sprintf("%s/.%s", home, appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("%s/.config/%s", home, appName))
 	defaultConfig.AddConfigPath(home)
@@ -156,7 +175,7 @@ func WriteConfigValue(key string, value any) {
 	defaultConfig.Set(key, value)
 
 	err := defaultConfig.WriteConfig()
-	HandleFatalError("Unable to write configuration:\n", err.Error())
+	util.HandleFatalError("Unable to write configuration:\n", err.Error())
 }
 
 // ShowConfig prints the configuration to stdout
@@ -184,11 +203,11 @@ func CreateConfigFile(args []string) {
 		CfgFile = args[0]
 	}
 
-	LogDebug("Creating configuration file: %s", CfgFile)
+	util.LogDebug("Creating configuration file: %s", CfgFile)
 
 	// If a config file is found, read it in.
 	err := defaultConfig.SafeWriteConfigAs(CfgFile)
-	HandleFatalError(err, "Unable to write configuration:\n")
+	util.HandleFatalError(err, "Unable to write configuration:\n")
 
 	fmt.Printf("Configuration file created: %s", CfgFile)
 }
