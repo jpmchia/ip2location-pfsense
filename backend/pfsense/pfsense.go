@@ -161,6 +161,7 @@ func EnrichLogWithIp(logEntry LogEntry) (*Ip2Map, error) {
 	LogDebug("Key: %v => %v %s %v", nkey, logEntry.Srcip, dir, logEntry.Dstip)
 
 	ip2Location, err := ip2location.RetrieveIpLocation(key, nkey)
+	HandleError(err, "[pfsense] Unable to retrieve: %s", err)
 
 	if err != nil {
 		LogDebug("[pfsense] Unable to retrieve: %s", err)

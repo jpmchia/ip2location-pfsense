@@ -25,7 +25,8 @@ var ip_requests string
 var ip2l_results string
 var ip2geomap string
 var healthcheck string
-var valid_api_keys map[string]string
+
+// var valid_api_keys map[string]string
 
 func init() {
 	config.LoadConfigProvider("IP2Location-pfSense")

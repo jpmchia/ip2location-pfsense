@@ -41,8 +41,6 @@ func init() {
 
 	LogDebug("Initialising configuration")
 
-	// defaultConfig = initViperConfig(appName)
-	// SetConfigFile(CfgFile)
 	_, err := LoadConfiguration()
 	HandleFatalError(err, "Unable to unmarshal configuration:\n")
 }
@@ -64,14 +62,13 @@ func LoadConfiguration() (Options, error) {
 	err := defaultConfig.ReadInConfig()
 	HandleFatalError(err, "Unable to read configuration:\n")
 
-	defaultConfig.Unmarshal(&Config)
+	err = defaultConfig.Unmarshal(&Config)
 	HandleFatalError(err, "Unable to unmarshal configuration:\n")
 	return Config, err
 }
 
 // LoadConfigProvider returns a configured viper instance
 func LoadConfigProvider(appName string) Provider {
-	return initViperConfig(appName)
 	return initViperConfig(appName)
 }
 

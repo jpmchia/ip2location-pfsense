@@ -16,7 +16,8 @@ type RedisCacheConfig struct {
 
 const RedisConfigKey = "redis"
 const ip2LocationKey = "redis.ip2location"
-const pfSenseKey = "redis.pfsense"
+
+// const pfSenseKey = "redis.pfsense"
 
 var configuration *viper.Viper
 

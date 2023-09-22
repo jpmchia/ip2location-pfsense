@@ -45,8 +45,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var redis bool
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "ip2location-pfsense",
@@ -86,7 +84,8 @@ func init() {
 	// rootCmd.PersistentFlags().BoolVar(&redis, "redis", true, "use Redis cache")
 
 	// Bind flags to viper
-	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	HandleError(err, "Unable to bind flag to viper")
 
 	if Debug {
 		LogDebug("Debugging verbose mode enabled")
