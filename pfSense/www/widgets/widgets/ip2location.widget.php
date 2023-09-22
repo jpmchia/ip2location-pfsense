@@ -1,25 +1,6 @@
 <?php
 /*
- * log.widget.php
  *
- * part of pfSense (https://www.pfsense.org)
- * Copyright (c) 2004-2013 BSD Perimeter
- * Copyright (c) 2013-2016 Electric Sheep Fencing
- * Copyright (c) 2014-2023 Rubicon Communications, LLC (Netgate)
- * Copyright (c) 2007 Scott Dale
- * All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 require_once("guiconfig.inc");
@@ -27,50 +8,147 @@ require_once("pfsense-utils.inc");
 require_once("functions.inc");
 require_once("syslog.inc");
 
-global $g, $pattern;
+global $ip2l_results, $ip2l_display_status;
+
+function create_url($hostport, $path) {
+    $url = $hostport . $path;
+	return $url;
+}
+
+function check_api($healthUrl)
+{
+	$ch = curl_init();
+	$optArray = array(
+		CURLOPT_URL => $healthUrl,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_HTTPGET => 1,
+	);
+	curl_setopt_array($ch, $optArray);
+
+	if(!$result = curl_exec($ch)) {
+		trigger_error(curl_error($ch));
+	}
+	curl_close($ch);
+
+	log_error("IP2Location API health check: " . $result);
+    
+	$ip2l_display_status = "IP2Location API health check: " . $result;
+	if ($result == "Service is available.") {
+		return "true";
+	} else {
+		return "false";
+	}
+	return "false";
+}
 
 function extract_ip_entries($logarr, $seconds)
 {
-	$datetime = date("Y-m-d H:i:s");
-	$timestamp = strtotime($datetime);
-	$time = $timestamp - $seconds;
-	$dateTimeCap = date("Y-m-d H:i:s", $time);
-
-	printf("From: %s to %s <br/>", $datetime, $dateTimeCap);
-
-	$publicIPsLogs = [];
+	$ip2l_display_status = sprintf("Extracting the last %s seconds of log entries.<br/>", $seconds);
+	$timeCap = time() - $seconds;
+	$loggedIps = [];
 	$count = 0;
-
 	foreach ($logarr as $entry) {
-		if ($entry['time'] < $dateTimeCap) {
+		$datetime = $entry['time'];
+		if ($datetime < $timeCap) {
+			$count++;
 			continue;
 		}
 		$srcIP = $entry['srcip'];
 		$dstIP = $entry['dstip'];
-
 		if ($entry['direction'] == "in") {
 			$safeSrcKey = sha1($srcIP);
-			$publicIPsLogs[$safeSrcKey] = $entry;
-			$count = $count + 1;
+			$loggedIps[$safeSrcKey] = $entry;
+			$count++;
 		} else {
 			$safeDstKey = sha1($dstIP);
-			$publicIPsLogs[$safeDstKey] = $entry;
-			$count = $count + 1;
+			$loggedIps[$safeDstKey] = $entry;
+			$count++;
 		}
 	}
-	printf("Displaying locations %s of %s IPs from the past %s seconds.\n", count($publicIPsLogs), $count, $seconds);
-
-	return $publicIPsLogs;
+	$$ip2l_display_status = sprintf("Extracted locations %s of a maximum of %s IPs, spanning the past %s seconds (%s to %s).\n", count($loggedIps), $count, $seconds, $datetime, date($timeCap));
+	
+	return $loggedIps;
 }
 
-if ($_REQUEST['widgetkey'] && !$_REQUEST['ajax']) {
+function truncate($string, $length) {
+    return (strlen($string) > $length) ? substr($string, 0, $length) : $string;
+}
 
+function send_filterlog($ip_log, $url, $key) {
+	$ip2l_display_status = sprintf("Sending %s IPs to IP2Location API.\n", count($ip_log));
+	if (!$url) {
+		log_error("IP2Location API send filter log error missing URL.");
+		return false;
+	}
+
+	$data = json_encode($ip_log);
+	$authorization = "Authorization: Bearer ". $key;
+	$ch_send = curl_init();
+	$send_optArray = array(
+		CURLOPT_URL => $url,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_HTTPHEADER => ['Content-Type: application/json', $authorization ],
+		CURLOPT_POST => 1,
+		CURLOPT_POSTFIELDS => $data
+	);
+	curl_setopt_array($ch_send, $send_optArray);
+	
+	$result = curl_exec($ch_send);
+	if (!$result) {
+		trigger_error(curl_error($ch_send));
+	}
+	$return_result = truncate($result, 13);
+	curl_close($ch_send);
+	log_error("IP2Location API send filter logs error: " . $result);
+	return $return_result;
+}
+
+function get_results($resultsid, $url, $key)
+{
+	$ip2l_display_status = sprintf("Fething resutls from API for %s.\n", $resultsid);
+
+	$dataArray = ['id' => $resultsid];
+	$data = http_build_query($dataArray);
+	$getUrl = $url."?".$data;
+	$ip2l_display_status = sprintf('URL: ' . $getUrl . '<br/>');
+	
+	$ch = curl_init();
+	$authorization = "Authorization: Bearer ". $key;
+	$optArray = array(	
+		CURLOPT_SSL_VERIFYPEER => false,
+		CURLOPT_URL => $getUrl,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_HTTPGET => 1,
+		CURLOPT_HTTPHEADER => ['Content-Type: application/json', $authorization ],
+		// CURLOPT_POSTFIELDS => $resultsId
+	);
+	curl_setopt_array($ch, $optArray);
+
+	$ip2result = curl_exec($ch);
+	$errors = curl_error($ch);
+	$response = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+	if (!$ip2result) {
+		trigger_error(curl_error($ch));
+		$ip2l_display_status = sprintf("An error occurred while retrieving the IP2Location results for the results ID: " . $resultsid . $errors . "<br/>");
+	}
+	printf($ip2result);
+}
+
+
+if ($_REQUEST['widgetkey'] && !$_REQUEST['ajax']) {
 	set_customwidgettitle($user_settings);
 
-	if (is_numeric($_POST['filterlogentries'])) {
-		$user_settings['widgets'][$_POST['widgetkey']]['filterlogentries'] = $_POST['filterlogentries'];
+	if (is_numeric($_POST['ip2l_max_entries'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_max_entries'] = $_POST['ip2l_max_entries'];
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['filterlogentries']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_max_entries']);
+	}
+
+	if (is_numeric($_POST['ip2l_log_interval'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_interval'] = $_POST['ip2l_log_interval'];
+	} else {
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_interval']);
 	}
 
 	$acts = array();
@@ -85,86 +163,65 @@ if ($_REQUEST['widgetkey'] && !$_REQUEST['ajax']) {
 	}
 
 	if (!empty($acts)) {
-		$user_settings['widgets'][$_POST['widgetkey']]['filterlogentriesacts'] = implode(" ", $acts);
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_acts'] = implode(" ", $acts);
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['filterlogentriesacts']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_acts']);
 	}
 	unset($accts);
 
-	if (!empty($include_ips)) {
-		$user_settings['widgets'][$_POST['widgetkey']]['includeips'] = implode(" ", $include_ips);
+	if (($_POST['ip2l_log_interfaces']) and ($_POST['ip2l_log_interfaces'] != "All")) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_interfaces'] = trim($_POST['ip2l_log_interfaces']);
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['includeips']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_interfaces']);
 	}
-	unset($include_ips);
-
-	if (($_POST['filterlogentriesinterfaces']) and ($_POST['filterlogentriesinterfaces'] != "All")) {
-		$user_settings['widgets'][$_POST['widgetkey']]['filterlogentriesinterfaces'] = trim($_POST['filterlogentriesinterfaces']);
+	
+	if (is_numeric($_POST['ip2l_log_seconds'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_seconds'] = $_POST['ip2l_log_seconds'];
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['filterlogentriesinterfaces']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_log_seconds']);
 	}
-
-	if (is_numeric($_POST['filterlogentriesinterval'])) {
-		$user_settings['widgets'][$_POST['widgetkey']]['filterlogentriesinterval'] = $_POST['filterlogentriesinterval'];
+	
+	if (is_string($_POST['ip2l_api_hostport'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_api_hostport'] = $_POST['ip2l_api_hostport'];
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['filterlogentriesinterval']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_api_hostport']);
 	}
-
-	if (is_numeric($_POST['logseconds'])) {
-		$user_settings['widgets'][$_POST['widgetkey']]['logseconds'] = $_POST['logseconds'];
+	
+	if (is_string($_POST['ip2l_submit_api'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_submit_api'] = $_POST['ip2l_submit_api'];
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['filterlogentries']);
-	}
-
-	if (is_URL($_POST['ip2location_service_url'])) {
-		$user_settings['widgets'][$_POST['widgetkey']]['ip2location_service_url'] = $_POST['ip2location_service_url'];
-	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2location_service_url']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_submit_api']);
 	}
 
-	if (is_URL($_POST['ip2location_results_url'])) {
-		$user_settings['widgets'][$_POST['widgetkey']]['ip2location_results_url'] = $_POST['ip2location_results_url'];
+	if (is_string($_POST['ip2l_results_api'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_results_api'] = $_POST['ip2l_results_api'];
 	} else {
-		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2location_results_url']);
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_results_api']);
 	}
 
-	save_widget_settings($_SESSION['Username'], $user_settings["widgets"], gettext("Saved Filter Log Entries via Dashboard."));
+	if (is_string($_POST['ip2l_health'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_health'] = $_POST['ip2l_health'];
+	} else {
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_health']);
+	}
 
+	if (is_string($_POST['ip2l_details_page'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_details_page'] = $_POST['ip2l_details_page'];
+	} else {
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_details_page']);
+	}	
+
+	if (is_string($_POST['ip2l_token'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_token'] = $_POST['ip2l_token'];
+	} else {
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_token']);
+	}
+	
+	save_widget_settings($_SESSION['Username'], $user_settings["widgets"], gettext("Saved IP2Location configuration via Dashboard."));
 	Header("Location: /");
-
 	exit(0);
 }
 
-function send_filterlog($publicIPsLogs, $url) {
-	// Encode the data
-	$data = json_encode($publicIPsLogs);
-
-	// Set cURL options
-	$ch = curl_init();
-
-	$optArray = array(
-		CURLOPT_URL => $url,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-		CURLOPT_POST => 1,
-		CURLOPT_POSTFIELDS => $data
-	);
-	curl_setopt_array($ch, $optArray);
-	var_dump($url);
-
-	$response = curl_exec($ch);
-	var_dump($response);
-
-	if( !$result = curl_exec($ch)) {
-		trigger_error(curl_error($ch));
-	}
-	curl_close($ch);
-
-	return $response;
-}
-?>
-
-<?php
 
 // When this widget is included in the dashboard, $widgetkey is already defined before the widget is included.
 // When the ajax call is made to refresh the firewall log table, 'widgetkey' comes in $_REQUEST.
@@ -172,270 +229,432 @@ if ($_REQUEST['widgetkey']) {
 	$widgetkey = $_REQUEST['widgetkey'];
 }
 
-$mapHeight = "340px";
-
+$widgetkey_nodash = str_replace("-", "", $widgetkey);
 $iface_descr_arr = get_configured_interface_with_descr();
 
-$nentries = isset($user_settings['widgets'][$widgetkey]['filterlogentries']) ? $user_settings['widgets'][$widgetkey]['filterlogentries'] : 5000;
+$ip2l_max_entries = isset($user_settings['widgets'][$widgetkey]['ip2l_max_entries']) ? $user_settings['widgets'][$widgetkey]['ip2l_max_entries'] : 50;
+$ip2l_log_interval = isset($user_settings['widgets'][$widgetkey]['ip2l_log_interval']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_interval'] : 10;
+$ip2l_log_acts = isset($user_settings['widgets'][$widgetkey]['ip2l_log_acts']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_acts'] : 'All';
+$ip2l_log_interfaces = isset($user_settings['widgets'][$widgetkey]['ip2l_log_interfaces']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_interfaces'] : 'All';
 
-$nentriesacts = isset($user_settings['widgets'][$widgetkey]['filterlogentriesacts']) ? $user_settings['widgets'][$widgetkey]['filterlogentriesacts'] : 'All';
-
-$nentriesinterfaces = isset($user_settings['widgets'][$widgetkey]['filterlogentriesinterfaces']) ? $user_settings['widgets'][$widgetkey]['filterlogentriesinterfaces'] : 'All';
-
-$filterfieldsarray = array(
-	"act" => $nentriesacts,
-	"interface" => isset($iface_descr_arr[$nentriesinterfaces]) ? $iface_descr_arr[$nentriesinterfaces] : $nentriesinterfaces
+$ip2l_fields_array = array(
+	"act" => $ip2l_log_acts,
+	"interface" => isset($iface_descr_arr[$ip2l_log_interfaces]) ? $iface_descr_arr[$ip2l_log_interfaces] : $ip2l_log_interfaces
 );
 
-$nentriesinterval = isset($user_settings['widgets'][$widgetkey]['filterlogentriesinterval']) ? $user_settings['widgets'][$widgetkey]['filterlogentriesinterval'] : 10;
+$ip2l_log_seconds = isset($user_settings['widgets'][$widgetkey]['ip2l_log_seconds']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_seconds'] : 30;
 
-$nseconds = isset($user_settings['widgets'][$widgetkey]['logseconds']) ? $user_settings['widgets'][$widgetkey]['logseconds'] : 30;
+$ip2l_api_hostport = isset($user_settings['widgets'][$widgetkey]['ip2l_api_hostport']) ? $user_settings['widgets'][$widgetkey]['ip2l_api_hostport'] : "http://localhost:9999";
+$ip2l_submit_api = isset($user_settings['widgets'][$widgetkey]['ip2l_submit_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_submit_api'] : "/api/filterlog";
+$ip2l_results_api = isset($user_settings['widgets'][$widgetkey]['ip2l_results_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_results_api'] : "/api/results";
+$ip2l_health = isset($user_settings['widgets'][$widgetkey]['ip2l_health']) ? $user_settings['widgets'][$widgetkey]['ip2l_health'] : "/health";
+$ip2l_details_page = isset($user_settings['widgets'][$widgetkey]['ip2l_details_page']) ? $user_settings['widgets'][$widgetkey]['ip2l_details_page'] : "/index.html";
+$ip2l_token = isset($user_settings['widgets'][$widgetkey]['ip2l_token']) ? $user_settings['widgets'][$widgetkey]['ip2l_token'] : 'valid-key';
 
 $filter_logfile = "{$g['varlog_path']}/filter.log";
 
-$filterlog = conv_log_filter($filter_logfile, $nentries, 5000, $filterfieldsarray);
-
-$publicIPsLogs = extract_ip_entries($filterlog, $nseconds);
-
 $widgetkey_nodash = str_replace("-", "", $widgetkey);
 
-//$ipList = array_keys($publicIPsLogs);
+$health = check_api(create_url($ip2l_api_hostport, $ip2l_health));
 
-$ip2location_submit_url = isset($user_settings['widgets'][$widgetkey]['ip2location_submit_url']) ? $user_settings['widgets'][$widgetkey]['ip2location_submit_url'] : "http://192.168.1.51:9999/filterlog";
-$ip2location_results_url = isset($user_settings['widgets'][$widgetkey]['ip2location_results_url']) ? $user_settings['widgets'][$widgetkey]['ip2location_results_url'] : 'http://192.168.1.51:9999/ip2geomap';
-
-
-$resultsId = send_filterlog($publicIPsLogs, $ip2location_submit_url);
-
-
-/*
-// Checking if any error occurs
-// during request or not
-if($e = curl_error($ch)) {
-	echo $e;
+if ($health == "false") {
+	$ip2l_display_status = "IP2Location API is not available.";
 } else {
-	var_dump($response);
-	// Decoding JSON data
-	$decodedData =
-		json_decode($response, true);
-	// Outputting JSON data in decoded form
-	var_dump($decodedData);
+	$ip2l_display_status = "IP2Location API is available.";
+	$filter_log = conv_log_filter($filter_logfile, $ip2l_max_entries, 5000, $ip2l_fields_array);
+	$ip2l_display_status = sprintf("Filter log entries: %d\n", $ip2l_max_entries);
+	
+	$ip_log_items = extract_ip_entries($filter_log, $ip2l_log_seconds);
+	$ip2l_display_status = sprintf("IP log items: %d, seconds: %d\n", count($ip_log_items), $ip2l_log_seconds);
+	
+	$ip2l_submit_url = create_url($ip2l_api_hostport, $ip2l_submit_api);
+	$ip2l_results_url = create_url($ip2l_api_hostport, $ip2l_results_api);
+	// $ip2l_display_status = sprintf("IP2Location API submit URL: %s\n", $ip2l_submit_url);
+
+	$ip2l_results = send_filterlog($ip_log_items, $ip2l_submit_url, $ip2l_token);
+	// $ip2l_display_status = sprintf("IP2Location API results: %s\n", $ip2l_results);
+	$resultsid = $ip2l_results;
 }
-*/
 
-
-/*
-$errors = curl_error($ch);
-$response = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-var_dump($result);
-var_dump($errors);
-var_dump($response);
-*/
+if (!$_REQUEST['ajax']) {
 ?>
-
-<link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
-<script src="/vendor/leaflet/leaflet.js"></script>
-<style>
-	#map {
-		height: <?=gettext($mapHeight); ?>;
-	}
-</style>
-<div id="map">
-
-</div>
-<script>
-	//<![CDATA[
-	var map = L.map('map').setView([51.505, -0.09], 4);
-
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		maxZoom: 19,
-		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-	}).addTo(map);
-
-	function onMapClick(e) {
-
-	}
-	map.on('click', onMapClick);
-	//]]>
-</script>
-<?php if (!$_REQUEST['ajax']) {
-?>
-
 <script type="text/javascript">
 //<![CDATA[
-	var logWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = <?=time()?>;
+	var ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = <?=time()?>;
+	console.log("Non-AJAX call for IP2Location widget (<?=htmlspecialchars($widgetkey)?>)");
+	console.log("ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = " + ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>);
 //]]>
 </script>
+<?php 
+} 
 
-<?php }
-
-printf("Results ID = " . $resultsId);
-
+if ($_REQUEST['ajax'] && $_REQUEST['widgetkey']) {
+	$coords_x = $_REQUEST['coords_x'];
+	$coords_y = $_REQUEST['coords_y'];
+	$zoom = $_REQUEST['zoom'];
+}
 ?>
 
-<?php
+<?php 
+if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
+	$ret_resultsid = $_REQUEST['resultsid'];
+	get_results($ret_resultsid, $ip2l_results_url, $ip2l_token);
+	exit(0);
+}
+?>
 
+<!-- This is the body of the widget and will be AJAX-refreshed -->
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
+<script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
+<script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
+
+<div id="<?=$widgetkey?>-map">
+	<div id="leaflet" style="height: 320px;">
+	</div>
+	<div class="subpanel-body">
+		<span><?=gettext($ip2l_display_status); ?></span>
+		<table id="ip2lWidgetTable<?=htmlspecialchars($widgetkey_nodash)?>" class="table table-striped table-hover table-condensed">
+			<thead>
+				<tr class="subpanel-heading">
+					<th><?=gettext("IP Address")?></th>
+					<th><?=gettext("Country")?></th>
+					<th><?=gettext("City")?></th>
+					<th><?=gettext("ISP")?></th>
+				</tr>
+			</thead>
+			<tbody>
+		<?php
+			$ip2l = array();
+			$ip2l_entry['ip'] = "192.168.0.1";
+			$ip2l_entry['country'] = "UK";
+			$ip2l_entry['city'] = "London";
+			$ip2l_entry['isp'] = "Virgin Media";
+			$ip2l[0] = $ip2l_entry;
+
+			$ip2l_entry['ip'] = "192.168.110.1";
+			$ip2l_entry['country'] = "Australia";
+			$ip2l_entry['city'] = "Sydney";
+			$ip2l_entry['isp'] = "Optus";
+			$ip2l[1] = $ip2l_entry;
+
+			// $ip2l = ip2location_get_last($n_max_entries);
+			foreach ($ip2l as $ip2l_entry):
+			?>
+				<tr>
+					<td><?=htmlspecialchars($ip2l_entry['ip'])?></td>
+					<td><?=htmlspecialchars($ip2l_entry['country'])?></td>
+					<td><?=htmlspecialchars($ip2l_entry['city'])?></td>
+					<td><?=htmlspecialchars($ip2l_entry['isp'])?></td>
+				</tr>
+			<?php
+				endforeach;
+				if (count($ip2l) == 0) {
+					print '<tr class="text-nowrap"><td colspan=5 class="text-center">';
+					print gettext('No logs to display');
+					print '</td></tr>';
+				}
+			?>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script>
+	var coords_x = localStorage.getItem("coords_x") ?? <?=isset($coords_x) ? htmlspecialchars($coords_x) : 51.505?>;
+	var coords_y = localStorage.getItem("coords_y") ?? <?=isset($coords_y) ? htmlspecialchars($coords_y) : -0.09?>;
+	var zoom = localStorage.getItem("zoom") ?? <?=isset($zoom) ? htmlspecialchars($zoom) : 13?>;
+
+	if (coords_x != null && coords_y != null && zoom != null) {
+		map_coords = [coords_x, coords_y];
+		map_zoom = zoom;
+	}
+	
+	var map = L.map('leaflet').setView(map_coords, map_zoom);
+
+	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    	maxZoom: 19,
+    	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	}).addTo(map);
+
+
+
+	function createMarker(item, coordinates) {
+		var new_icon;
+		switch (item.version) {
+			case "4":
+				switch (item.act) {
+					case "pass": 
+						if (item.direction == "in") { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/allow4in.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} else { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/allow4out.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} 
+						break;
+					case "block":
+					case "reject":
+					default:
+						if (item.direction == "in") { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/block4in.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} else { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/block4out.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						}
+						break;
+				}
+				break;
+			case "6":
+				switch (item.act) {
+					case "pass": 
+						if (item.direction == "in") { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/allow6in.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} else { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/allow6out.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} 
+						break;
+					case "block":
+					case "reject":
+					default:
+						if (item.direction == "in") { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/block6in.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} else { 
+							new_icon = L.icon({ iconUrl: '/widgets/images/ip2location/block6out.png', iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [12, 22] });
+						} 
+						break;
+				}
+				break;
+		}
+		var coordinates = [ parseFloat(item.latitude), parseFloat(item.longitude) ];
+		var toolip_text = `${item.interface}:${item.proto} ${item.direction} => ${item.srcip}<br/>`;
+		var popup = `${item.interface}:${item.proto} ${item.direction} => ${item.srcip}<br/> IP: ${item.ip}<br/> Country: ${item.country_name}<br/> City: ${item.city_name}<br/> Region: ${item.region_name}, ${item.ZipCode}<br/> Timezone: ${item.TimeZone}<br/> ASN: ${item.Asn}<br/> AS: ${item.As}<br/> IsProxy: ${item.IsProxy}`;
+		var new_marker = L.marker(coordinates, { icon: new_icon });
+		new_marker.bindTooltip(toolip_text).openTooltip();
+		//bindPopup(popup);
+		
+		return new_marker;
+	}
+
+	function onMapMove(e) {
+		localStorage.setItem("coords_x", map.getCenter().lat);
+		localStorage.setItem("coords_y", map.getCenter().lng);
+		localStorage.setItem("zoom", map.getZoom());
+		console.log("Map moved to " + map.getCenter().lat + ", " + map.getCenter().lng + " at zoom level " + map.getZoom());
+	}
+
+	map.on('zoomend', onMapMove);
+	map.on('moveend', onMapMove);
+
+	function resetMap() {
+		localStorage.removeItem("coords_x");
+		localStorage.removeItem("coords_y");
+		localStorage.removeItem("zoom");
+		console.log("Map reset");
+	}
+
+	function formatParams(params) {
+		return "?" + Object
+        	.keys(params)
+        	.map(function(key){
+          	return key+"="+encodeURIComponent(params[key])
+        })
+        .join("&")
+	}
+
+	function fetchMapData() {
+		var requestdata = {
+			ajax: "results",
+			widgetkey: <?=json_encode($widgetkey)?>,
+			resultsid: <?=json_encode($resultsid)?>,
+		};
+    	var xhr = new XMLHttpRequest();
+		var url = '/widgets/widgets/ip2location.widget.php' + formatParams(requestdata)
+    	xhr.open('GET', url, true);
+		
+    	xhr.setRequestHeader('Content-Type', 'application/json');
+    	xhr.onload = function() {
+			if (xhr.status >= 200 && xhr.status < 400) {
+				try {
+					var data = JSON.parse(xhr.responseText);
+					// Add markers to your Leaflet map here using the data
+					for (var i = 0; i < data.length; i++) {
+						item = data[i];
+						var coordinates = [ parseFloat(item.latitude), parseFloat(item.longitude) ];
+						var marker = createMarker(item, coordinates);
+						marker.addTo(map);
+					}
+				} catch (e) {
+					console.error('Error parsing JSON', e);
+				}
+			} else {
+				console.error('Error fetching data');
+			}
+    	};
+	    
+		xhr.onerror = function() {
+			console.error('Connection error');
+		};
+		xhr.send();
+	}
+
+</script>
+<script type="text/javascript">
+//<![CDATA[
+	// POST data to send via AJAX
+	events.push(function(){
+		// --------------------- Centralized widget refresh system ------------------------------
+		// Callback function called by refresh system when data is retrieved
+		function ip2l_callback(s) {
+			console.log("Refreshing IP2Location widget (<?=htmlspecialchars($widgetkey)?>)");
+			$(<?=json_encode('#widget-' . $widgetkey . '_panel-body')?>).html(s);
+		}
+	
+		var postdata = {
+			ajax: "ajax",
+			widgetkey: <?=json_encode($widgetkey)?>,
+			lastsawtime: ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>,
+		};
+		console.log("postdata = " + JSON.stringify(postdata));
+
+		// Create an object defining the widget refresh AJAX call
+		var ip2lObject = new Object();
+		ip2lObject.name = "IP2Location Fireall Logs";
+		ip2lObject.url = "/widgets/widgets/ip2location.widget.php";
+		ip2lObject.callback = ip2l_callback;
+		ip2lObject.parms = postdata;
+		ip2lObject.freq = <?=$ip2l_log_interval?>/5;
+		
+		// Register the AJAX object
+		register_ajax(ip2lObject);
+		console.log("Registered IP2Location widget (<?=htmlspecialchars($widgetkey)?>) with freq = " + ip2lObject.freq + " seconds, and lastsawtime = " + ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>);
+		// ---------------------------------------------------------------------------------------
+	});
+
+	fetchMapData();	
+//]]>
+</script>
+<?php
 /* for AJAX response, we only need the panel-body */
 if ($_REQUEST['ajax']) {
-
-	$ch = curl_init();
-
-	$resultsId = 1;
-	$optArray = array(
-		CURLOPT_URL => $ip2location_results_url,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-		CURLOPT_POST => 1,
-		CURLOPT_POSTFIELDS => $resultsId
-	);
-	curl_setopt_array($ch, $optArray);
-
-	//$ip2result = curl_exec($ch);
-	//$errors = curl_error($ch);
-	//$response = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	//curl_close($ch);
-	//var_dump($ip2result);
-
+	
 	exit;
 }
 ?>
-
-
-<script type="text/javascript">
-//<![CDATA[
-
-events.push(function(){
-	// --------------------- Centralized widget refresh system ------------------------------
-
-	// Callback function called by refresh system when data is retrieved
-	function logs_callback(s) {
-		$(<?=json_encode('#widget-' . $widgetkey . '_panel-body')?>).html(s);
-	}
-
-	// POST data to send via AJAX
-	var postdata = {
-		ajax: "ajax",
-		widgetkey : <?=json_encode($widgetkey)?>,
-		lastsawtime: logWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>
-	 };
-
-	// Create an object defining the widget refresh AJAX call
-	var logsObject = new Object();
-	logsObject.name = "IP2Location Logs";
-	logsObject.url = "/widgets/widgets/ip2location.widget.php";
-	logsObject.callback = logs_callback;
-	logsObject.parms = postdata;
-	logsObject.freq = <?=$nentriesinterval?>/5;
-
-	// Register the AJAX object
-	register_ajax(logsObject);
-
-	// ---------------------------------------------------------------------------------------------------
-});
-//]]>
-</script>
-
 <!-- close the body we're wrapped in and add a configuration-panel -->
 </div>
 
+<!----------- Configuration panel ----------->
 <div id="<?=$widget_panel_footer_id?>" class="panel-footer collapse">
-
 <?php
-$pconfig['nentries'] = isset($user_settings['widgets'][$widgetkey]['filterlogentries']) ? $user_settings['widgets'][$widgetkey]['filterlogentries'] : '';
-$pconfig['nentriesinterval'] = isset($user_settings['widgets'][$widgetkey]['filterlogentriesinterval']) ? $user_settings['widgets'][$widgetkey]['filterlogentriesinterval'] : '';
-$pconfig['nseconds'] = isset($user_settings['widgets'][$widgetkey]['logseconds']) ? $user_settings['widgets'][$widgetkey]['logseconds'] : '';
-$pconfig['ip2location_service_url'] = isset($user_settings['widgets'][$widgetkey]['ip2location_service_url']) ? $user_settings['widgets'][$widgetkey]['ip2location_service_url'] : '';
-$pconfig['ip2location_results_url'] = isset($user_settings['widgets'][$widgetkey]['ip2location_results_url']) ? $user_settings['widgets'][$widgetkey]['ip2location_results_url'] : '';
+$pconfig['ip2l_max_entries'] = isset($user_settings['widgets'][$widgetkey]['ip2l_max_entries']) ? $user_settings['widgets'][$widgetkey]['ip2l_max_entries'] : '';
+$pconfig['ip2l_log_interval'] = isset($user_settings['widgets'][$widgetkey]['ip2l_log_interval']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_interval'] : '';
+$pconfig['ip2l_log_acts'] = isset($user_settings['widgets'][$widgetkey]['ip2l_log_acts']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_acts'] : '';
+$pconfig['ip2l_log_interfaces'] = isset($user_settings['widgets'][$widgetkey]['ip2l_log_interfaces']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_interfaces'] : '';
+$pconfig['ip2l_log_seconds'] = isset($user_settings['widgets'][$widgetkey]['ip2l_log_seconds']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_seconds'] : '';
+$pconfig['ip2l_api_hostport'] = isset($user_settings['widgets'][$widgetkey]['ip2l_api_hostport']) ? $user_settings['widgets'][$widgetkey]['ip2l_api_hostport'] : '';
+$pconfig['ip2l_submit_api'] = isset($user_settings['widgets'][$widgetkey]['ip2l_submit_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_submit_api'] : '';
+$pconfig['ip2l_results_api'] = isset($user_settings['widgets'][$widgetkey]['ip2l_results_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_results_api'] : '';
+$pconfig['ip2l_health'] = isset($user_settings['widgets'][$widgetkey]['ip2l_health']) ? $user_settings['widgets'][$widgetkey]['ip2l_health'] : '';
+$pconfig['ip2l_details_page'] = isset($user_settings['widgets'][$widgetkey]['ip2l_details_page']) ? $user_settings['widgets'][$widgetkey]['ip2l_details_page'] : '';
+$pconfig['ip2l_token'] = isset($user_settings['widgets'][$widgetkey]['ip2l_token']) ? $user_settings['widgets'][$widgetkey]['ip2l_token'] : '';
 
 ?>
-	<form action="/widgets/widgets/ip2location.widget.php" method="post"
-		class="form-horizontal">
-		<input type="hidden" name="widgetkey" value="<?=htmlspecialchars($widgetkey); ?>">
-		<?=gen_customwidgettitle_div($widgetconfig['title']); ?>
 
-		<div class="form-group">
-			<label for="ip2location_service_url" class="col-sm-4 control-label"><?=gettext('IP2Location Cache API')?></label>
-			<div class="col-sm-4">
-				<input type="text" name="ip2location_service_url" id="ip2location_service_url" value="<?=$pconfig['ip2location_service_url']?>" placeholder="http://192.168.1.51:9999/filterlog" class="form-control" />
-			</div>
-		</div>
+<form action="/widgets/widgets/ip2location.widget.php" method="post" class="form-horizontal">
+	<input type="hidden" name="widgetkey" value="<?=htmlspecialchars($widgetkey); ?>">
+	<?=gen_customwidgettitle_div($widgetconfig['title']); ?>
 
-		<div class="form-group">
-			<label for="ip2location_results_url" class="col-sm-4 control-label"><?=gettext('IP2Location results API ')?></label>
-			<div class="col-sm-4">
-				<input type="text" name="ip2location_results_url" id="ip2location_results_url" value="<?=$pconfig['ip2location_results_url']?>" placeholder="http://192.168.1.51:9999/ip2geomap" class="form-control" />
-			</div>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_api_hostport" class="col-sm-4 control-label"><?=gettext('IP2Location daemon http[s]://<hostname>:<port> ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_api_hostport" id="ip2l_api_hostport" value="<?=$pconfig['ip2l_api_hostport']?>" placeholder="http://localhost:9999" class="form-control" />
 		</div>
+	</div>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_submit_api" class="col-sm-4 control-label"><?=gettext('Submit filter logs API [/filterlog] ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_submit_api" id="ip2l_submit_api" value="<?=$pconfig['ip2l_submit_api']?>" placeholder="/filterlog" class="form-control" />
+		</div>
+	</div>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_results_api" class="col-sm-4 control-label"><?=gettext('Retrieve resutls API [/results] ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_results_api" id="ip2l_results_api" value="<?=$pconfig['ip2l_results_api']?>" placeholder="/results" class="form-control" />
+		</div>
+	</div>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_health" class="col-sm-4 control-label"><?=gettext('Service health check endpoint [/health] ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_health" id="ip2l_health" value="<?=$pconfig['ip2l_health']?>" placeholder="/health" class="form-control" />
+		</div>
+	</div>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_details_page" class="col-sm-4 control-label"><?=gettext('Details page [/index.html] ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_details_page" id="ip2l_details_page" value="<?=$pconfig['ip2l_details_page']?>" placeholder="/index.html" class="form-control" />
+		</div>
+	</div>		
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_token" class="col-sm-4 control-label"><?=gettext('IP2Location daemon API token ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_token" id="ip2l_token" value="<?=$pconfig['ip2l_token']?>" placeholder="[API Bearer token]" class="form-control" />
+		</div>
+	</div>
 
-		<div class="form-group">
-			<label for="filterlogentries" class="col-sm-4 control-label"><?=gettext('Timeframe to display')?></label>
-			<div class="col-sm-6">
-				<input type="number" name="filterlogentries" id="filterlogentries" value="<?=$pconfig['nentries']?>" placeholder="500"
-					min="30" max="5000" class="form-control" />
-			</div>
+	<div class="form-group">
+		<label for="ip2l_max_entries" class="col-sm-4 control-label"><?=gettext('Number of entries')?></label>
+		<div class="col-sm-6">
+			<input type="number" name="ip2l_max_entries" id="ip2l_max_entries" value="<?=$pconfig['ip2l_max_entries']?>" placeholder="50" min="1" max="5000" class="form-control" />
 		</div>
+	</div>
 
-		<div class="form-group">
-			<label class="col-sm-4 control-label"><?=gettext('Filter actions')?></label>
-			<div class="col-sm-6 checkbox">
-			<?php $include_acts = explode(" ", strtolower($nentriesacts)); ?>
-			<label><input name="actpass" type="checkbox" value="Pass"
-				<?=(in_array('pass', $include_acts) ? 'checked':'')?> />
-				<?=gettext('Pass')?>
-			</label>
-			<label><input name="actblock" type="checkbox" value="Block"
-				<?=(in_array('block', $include_acts) ? 'checked':'')?> />
-				<?=gettext('Block')?>
-			</label>
-			<label><input name="actreject" type="checkbox" value="Reject"
-				<?=(in_array('reject', $include_acts) ? 'checked':'')?> />
-				<?=gettext('Reject')?>
-			</label>
-			</div>
+	<div class="form-group">
+		<label for="ip2l_log_interval" class="col-sm-4 control-label"><?=gettext('Update interval')?></label>
+		<div class="col-sm-4">
+			<input type="number" name="ip2l_log_interval" id="ip2l_log_interval" value="<?=$pconfig['ip2l_log_interval']?>" placeholder="60" min="1" class="form-control" />
 		</div>
+		<?=gettext('Seconds');?>
+	</div>
 
-		<div class="form-group">
-			<label for="filterlogentriesinterfaces" class="col-sm-4 control-label">
-				<?=gettext('Filter interface')?>
-			</label>
-			<div class="col-sm-6 checkbox">
-				<select name="filterlogentriesinterfaces" id="filterlogentriesinterfaces" class="form-control">
-			<?php foreach (array("All" => "ALL") + $iface_descr_arr as $iface => $ifacename):?>
-				<option value="<?=$iface?>"
-						<?=($nentriesinterfaces==$iface?'selected':'')?>><?=htmlspecialchars($ifacename)?></option>
-			<?php endforeach;?>
-				</select>
-			</div>
+	<div class="form-group" id="ip2l">
+		<label class="col-sm-4 control-label"><?=gettext('Filter actions')?></label>
+		<div class="col-sm-6 checkbox">
+			<?php $include_acts = explode(" ", strtolower($ip2l_log_acts)); ?>
+			<label><input name="actpass" type="checkbox" value="Pass" <?=(in_array('pass', $include_acts) ? 'checked':'')?> /><?=gettext('Pass')?></label>
+			<label><input name="actblock" type="checkbox" value="Block" <?=(in_array('block', $include_acts) ? 'checked':'')?> /><?=gettext('Block')?></label>
+			<label><input name="actreject" type="checkbox" value="Reject" <?=(in_array('reject', $include_acts) ? 'checked':'')?> /><?=gettext('Reject')?></label>
 		</div>
+	</div>
 
-		<div class="form-group">
-			<label for="filterlogentriesinterval" class="col-sm-4 control-label"><?=gettext('Update interval')?></label>
-			<div class="col-sm-4">
-				<input type="number" name="filterlogentriesinterval" id="filterlogentriesinterval" value="<?=$pconfig['nentriesinterval']?>" placeholder="5"
-					min="1" class="form-control" />
-			</div>
-			<?=gettext('Seconds');?>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_log_interfaces" class="col-sm-4 control-label"><?=gettext('Filter interface')?></label>
+		<div class="col-sm-6 checkbox">
+			<select name="ip2l_log_interfaces" id="ip2l_log_interfaces" class="form-control">
+				<?php foreach (array("All" => "ALL") + $iface_descr_arr as $iface => $ifacename):?>
+					<option value="<?=$iface?>"<?=($ip2l_log_interfaces==$iface?'selected':'')?>><?=htmlspecialchars($ifacename)?></option>
+				<?php endforeach;?>
+			</select>
 		</div>
+	</div>
 
-		<div class="form-group">
-			<label for="logseconds" class="col-sm-4 control-label"><?=gettext('Display the last (seconds)')?></label>
-			<div class="col-sm-4">
-				<input type="number" name="logseconds" id="logseconds" value="<?=$pconfig['nseconds']?>" placeholder="60"
-				       min="1" class="form-control" />
-			</div>
-			<?=gettext('Seconds');?>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_log_seconds" class="col-sm-4 control-label"><?=gettext('Display the last (seconds)')?></label>
+		<div class="col-sm-4">
+			<input type="number" name="ip2l_log_seconds" id="ip2l_log_seconds" value="<?=$pconfig['ip2l_log_seconds']?>" placeholder="60" min="1" class="form-control" />
 		</div>
+		<?=gettext('Seconds');?>
+	</div>
 
-		<div class="form-group">
-			<div class="col-sm-offset-4 col-sm-6">
-				<button type="submit" class="btn btn-primary"><i class="fa fa-save icon-embed-btn"></i><?=gettext('Save')?></button>
-			</div>
+	<div class="form-group">
+		<div class="col-sm-offset-4 col-sm-6">
+			<button type="submit" class="btn btn-primary"><i class="fa fa-save icon-embed-btn"></i><?=gettext('Save')?></button>
+			<button class="btn" onclick="resetMap()">Reset map</button>
 		</div>
-	</form>
+	</div>
+</form>
 
 <script type="text/javascript">
 //<![CDATA[
+
+console.log("Loading IP2Location widget (<?=htmlspecialchars($widgetkey)?>)");
+
 if (typeof getURL == 'undefined') {
 	getURL = function(url, callback) {
 		if (!url)
@@ -476,7 +695,7 @@ if (typeof getURL == 'undefined') {
 function outputrule(req) {
 	alert(req.content);
 }
+
+console.log("Loaded IP2Location widget (<?=htmlspecialchars($widgetkey)?>)");
 //]]>
 </script>
-
-

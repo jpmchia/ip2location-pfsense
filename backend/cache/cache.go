@@ -21,25 +21,22 @@ var ctx = context.Background()
 var instances map[string]RedisInstance
 
 func init() {
-	LogDebug("Initialising cache service")
+	LogDebug("[cache] Initialising cache service")
 
 	instances = make(map[string]RedisInstance)
 }
 
 // Create Redis cache instances based on the configuration
 func CreateInstances() {
-
-	LogDebug("Executing CreateInstances")
-
-	LogDebug("Mapping Redis config")
+	LogDebug("[cache] Mapping Redis config")
 	conf := config.GetConfig().Get("redis")
 
 	for key, val := range conf.(map[string]interface{}) {
-		LogDebug("Redis config: %v = %v", key, val)
+		LogDebug("[cache] Redis config: %v = %v", key, val)
 
 		subkey := fmt.Sprintf("redis.%s", key)
 		rc, err := LoadConfiguration(subkey)
-		HandleError(err, "Unable to load configuration for %s", key)
+		HandleError(err, "[cache] Unable to load configuration for %s", key)
 		CreateInstance(key, rc)
 	}
 }
@@ -69,21 +66,21 @@ func CreateInstance(name string, config RedisCacheConfig) RedisInstance {
 
 // Returns a Redis instance from the instances map
 func Instance(name string) RedisInstance {
-	LogDebug("Getting Redis instance: %v", name)
+	LogDebug("[cache] Getting Redis instance: %v", name)
 
 	return instances[name]
 }
 
 // Gets a value from the Redis instance
 func (ri RedisInstance) Get(key string) (interface{}, error) {
-	LogDebug("Getting key: %v from Redis instance: %v", key, ri)
+	LogDebug("[cache] Getting key: %v from Redis instance: %v", key, ri)
 
 	return ri.Rh.JSONGet(key, ".")
 }
 
 // Sets	a value in the Redis instance
 func Set(name string, key string, value interface{}) (interface{}, error) {
-	LogDebug("Setting key: %v to value: %v in Redis instance: %v", key, value, name)
+	LogDebug("[cache] Setting key: %v to value: %v in Redis instance: %v", key, value, name)
 	ri := instances[name]
 
 	ri.KeysSet++
@@ -92,10 +89,11 @@ func Set(name string, key string, value interface{}) (interface{}, error) {
 }
 
 func Handler(name string) *rejson.Handler {
-	LogDebug("Getting Redis handler for instance: %v", name)
+	LogDebug("[cache] Getting Redis handler for instance: %v", name)
 	ri := instances[name]
 	rh := rejson.NewReJSONHandler()
 	rh.SetGoRedisClientWithContext(ctx, ri.Rdb)
 
 	return rh
 }
+

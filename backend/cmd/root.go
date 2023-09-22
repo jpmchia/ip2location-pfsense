@@ -25,7 +25,6 @@ import (
 	. "ip2location-pfsense/util"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var redis bool
@@ -66,10 +65,10 @@ func init() {
 	// Define global persistent flags
 	rootCmd.PersistentFlags().StringVarP(&config.CfgFile, "config", "c", cfgFile, "specifiy the filename and path of the configiration file")
 	rootCmd.PersistentFlags().BoolVarP(&util.Debug, "debug", "v", false, "output verbose debugging information")
-	rootCmd.PersistentFlags().BoolVar(&redis, "redis", true, "use Redis cache")
+	// rootCmd.PersistentFlags().BoolVar(&redis, "redis", true, "use Redis cache")
 
 	// Bind flags to viper
-	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	//viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 
 	if Debug {
 		LogDebug("Debugging verbose mode enabled")

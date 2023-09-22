@@ -38,13 +38,12 @@ var defaultConfig *viper.Viper
 
 // Default initialiser for the applicaiton's configuration
 func init() {
+
 	LogDebug("Initialising configuration")
 
-	defaultConfig = initViperConfig(appName)
-
-	SetConfigFile(CfgFile)
-
-	err := viper.Unmarshal(&Config)
+	// defaultConfig = initViperConfig(appName)
+	// SetConfigFile(CfgFile)
+	_, err := LoadConfiguration()
 	HandleFatalError(err, "Unable to unmarshal configuration:\n")
 }
 
@@ -52,14 +51,21 @@ func init() {
 func ConfigProvider() Provider {
 	return defaultConfig
 }
+
 func GetConfig() *viper.Viper {
 	return defaultConfig
 }
 
 func LoadConfiguration() (Options, error) {
-	viper := initViperConfig(appName)
-	SetConfigFile(CfgFile)
-	err := viper.Unmarshal(&Config)
+
+	defaultConfig = initViperConfig(appName)
+
+	setConfigLocations(CfgFile)
+
+	err := defaultConfig.ReadInConfig()
+	HandleFatalError(err, "Unable to read configuration:\n")
+
+	defaultConfig.Unmarshal(&Config)
 	HandleFatalError(err, "Unable to unmarshal configuration:\n")
 	return Config, err
 }
@@ -75,13 +81,8 @@ func SetValue(key string, value interface{}) {
 
 // SetConfigFile sets the config file to use and reloads the configuraton
 func SetConfigFile(file string) {
-	CfgFile = file
+	setConfigLocations(file)
 
-	setConfigLocations()
-
-	// If a config file is found, read it in.
-	err := defaultConfig.ReadInConfig()
-	HandleFatalError(err, "Unable to read configuration:\n")
 }
 
 // Initialises viper with default values
@@ -95,6 +96,7 @@ func initViperConfig(appName string) *viper.Viper {
 	v.SetDefault("loglevel", "debug")
 	v.SetDefault("installation_path", "/usr/local/ip2location")
 	v.SetDefault("use_redis", true)
+
 	v.SetDefault("redis.ip2location.host", "127.0.0.1")
 	v.SetDefault("redis.ip2location.port", "6379")
 	v.SetDefault("redis.ip2location.db", 1)
@@ -105,30 +107,36 @@ func initViperConfig(appName string) *viper.Viper {
 	v.SetDefault("redis.pfsense.db", 2)
 	v.SetDefault("redis.pfsense.auth", "ip2location")
 	v.SetDefault("redis.pfsense.pass", "password")
+
+	v.SetDefault("ip2api.url", "https://api.ip2location.io/")
+	v.SetDefault("ip2api.key", "")
+	v.SetDefault("ip2api.plan", "Free")
+	v.SetDefault("ip2api.max_errors", 5)
+
 	v.SetDefault("service.bind_host", "127.0.0.1")
 	v.SetDefault("service.bind_port", "9999")
-	v.SetDefault("ip2api.url", "https://api.ip2location.io/")
-	v.SetDefault("ip2api.key", "4C9057DC19ADD10E8CEDF123C74C77CE")
-	v.SetDefault("ip2api.plan", "Free")
-	// v.SetDefault("counters.limits.monthly", "30000")
-	// v.SetDefault("counters.limits.daily", "900")
-	// v.SetDefault("counters.limits.hourly", "60")
-	// v.SetDefault("counters.startdate", "")
-	// v.SetDefault("counters.nextreset", "")
-	// v.SetDefault("counters.lifetime", "")
-	// v.SetDefault("counters.enabled", true)
+	v.SetDefault("service.use_ssl", false)
+	v.SetDefault("service.ssl_cert", "cert.pem")
+	v.SetDefault("service.ssl_key", "cert.key")
+	v.SetDefault("service.ingest_logs", "/api/filterlog")
+	v.SetDefault("service.ip2l_results", "/api/results")
+	v.SetDefault("service.ip2geomap", "/index.html")
+	v.SetDefault("service.healthcheck", "/health")
+	v.SetDefault("service.ip_requests", "/api/ip2location")
+
 	v.SetDefault("use_cache", true)
-	v.SetDefault("debug", true)
+	v.SetDefault("debug", false)
 
 	return v
 }
 
 // SetConfigLocations sets the locations to search for the configuration file
-func setConfigLocations() {
+func setConfigLocations(file string) {
 	LogDebug("Setting config locations")
+	CfgFile = file
 	// Use config file from the flag.
+	defaultConfig.SetConfigType("yaml")
 	defaultConfig.SetConfigFile(CfgFile)
-	defaultConfig.AddConfigPath(".")
 	defaultConfig.AddConfigPath(fmt.Sprintf("/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/etc/%s", appName))

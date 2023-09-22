@@ -22,20 +22,20 @@ var configuration *viper.Viper
 
 func LoadConfiguration(subkey string) (RedisCacheConfig, error) {
 	_, err := config.LoadConfiguration()
-	HandleFatalError(err, "Unable to load configuration")
+	HandleFatalError(err, "[cache] Unable to load configuration")
 
 	// redisConfigKey := options.Redis.Key
 	configuration = config.GetConfig()
-	LogDebug("Loading configuration for %s", subkey)
-	LogDebug("Configuration: %v", configuration.AllSettings())
+	LogDebug("[cache] Loading configuration for %s", subkey)
+	LogDebug("[cache] Configuration: %v", configuration.AllSettings())
 
 	subconfig := configuration.Sub(subkey)
 	if subconfig == nil {
-		HandleFatalError(nil, "Unable to find configuration for %s", subkey)
+		HandleFatalError(nil, "[cache] Unable to find configuration for %s", subkey)
 	}
 
 	redisConfig, err := loadConfig(subconfig)
-	HandleFatalError(err, "Unable to load configuration for %s", subkey)
+	HandleFatalError(err, "[cache] Unable to load configuration for %s", subkey)
 
 	return *redisConfig, err
 }

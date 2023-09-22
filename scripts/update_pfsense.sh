@@ -3,7 +3,7 @@
 # It is intended to be used for development purposes only.
 
 ARGS=$@
-PFSENSE_ADDR="192.168.0.1"
+PFSENSE_ADDR="root@192.168.0.1"
 
 if [ -z "$ARGS" ]; then
     echo -e "\nUsage: $0 [USER@]PFSENSE_ADDR\n"
@@ -17,7 +17,5 @@ if [ -z "$ARGS" ]; then
     exit 1
 fi
 
-
-
 # Copy files to pfsense
-scp -r ./pfSense/www/* root@${PFSENSE_ADDR}:/usr/local/www/
+scp -r pfSense/www/* ${PFSENSE_ADDR}:/usr/local/www/
