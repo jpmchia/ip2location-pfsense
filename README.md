@@ -1,9 +1,4 @@
 
-<<<<<<< HEAD
-# IP2Location-pfSense
-pfSense dashboard widget and backend service written in Go, using Redis cache for the retrieval and display of "live" geolocation data provided by the IP2Location.io API service. An interactive map displays geolocaton information as a widget on the pfSense webConfigurator dashboard screen and is optionally available via a standalone page, hosted by the backend service. 
-=======
-
 # ip2location-pfsense
 
 pfSense dashboard widget and backend service for displaying live IP geolocation information obtained from the IP2Location.io API. 
@@ -33,6 +28,3 @@ The dashboard widget targets and has been tested on pfSense+ version 23.0.5.1. I
 ```shellscript
 ./scripts/update_pfsense.sh <username>@<host>
 ```
-
->>>>>>> dev
-
