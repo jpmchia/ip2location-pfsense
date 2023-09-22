@@ -12,8 +12,6 @@ jobs:
         - uses: actions/checkout@v2
         - name: Run golangci-lint
           uses: golangci/golangci-lint-action@v3.7.0
-        - name: Run golangci-lint
-          uses: golangci/golangci-lint-action@v3.7.0
           with:
           # golangci-lint working directory, default is project root
             working-directory: backend 
