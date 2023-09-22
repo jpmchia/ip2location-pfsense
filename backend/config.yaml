@@ -1,9 +1,9 @@
 debug: false
 installation_path: /usr/local/ip2location
 ip2api:
+    key: 
     plan: Free
     url: https://api.ip2location.io/
-    max_errors: 5
 jsonlogs: false
 loglevel: debug
 redis:
@@ -22,17 +22,5 @@ redis:
 service:
     bind_host: 192.168.1.51
     bind_port: "9999"
-    use_ssl: false
-    ssl_cert: ./IP2Location+SSL.crt
-    ssl_key: ./IP2Location+SSL.pem
-    ingest_logs: /api/filterlog
-    ip2l_results: /api/results
-    ip2geomap: /index.html
-    ip_requests: /api/ip2location
-    healthcheck: /health
-
 use_cache: true
 use_redis: true
-apikeys:
-  - rAtRpIX3LlpKH4IzBRG58g18MFDb7keiDBV9Gq6e9Au4kcHEPqXZv1RU14MaVIe0
-  - qvqiDj7cUXaikId0RuXgDl2BsK5cbMizSmqELEs2FlLCjY83CuxhbhUImvs4L03P"

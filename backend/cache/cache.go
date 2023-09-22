@@ -96,4 +96,3 @@ func Handler(name string) *rejson.Handler {
 
 	return rh
 }
-

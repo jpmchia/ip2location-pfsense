@@ -3,7 +3,11 @@ package config
 import (
 	"fmt"
 	"os"
+	"fmt"
+	"os"
 	"time"
+
+	. "ip2location-pfsense/util"
 
 	. "ip2location-pfsense/util"
 
@@ -34,6 +38,11 @@ var Config Options
 const appName string = "IP2Location-pfSense"
 
 var CfgFile string = "config.yaml"
+var Config Options
+
+const appName string = "IP2Location-pfSense"
+
+var CfgFile string = "config.yaml"
 var defaultConfig *viper.Viper
 
 // Default initialiser for the applicaiton's configuration
@@ -51,7 +60,6 @@ func init() {
 func ConfigProvider() Provider {
 	return defaultConfig
 }
-
 func GetConfig() *viper.Viper {
 	return defaultConfig
 }
@@ -73,8 +81,10 @@ func LoadConfiguration() (Options, error) {
 // LoadConfigProvider returns a configured viper instance
 func LoadConfigProvider(appName string) Provider {
 	return initViperConfig(appName)
+	return initViperConfig(appName)
 }
 
+func SetValue(key string, value interface{}) {
 func SetValue(key string, value interface{}) {
 	defaultConfig.Set(key, value)
 }
@@ -96,7 +106,6 @@ func initViperConfig(appName string) *viper.Viper {
 	v.SetDefault("loglevel", "debug")
 	v.SetDefault("installation_path", "/usr/local/ip2location")
 	v.SetDefault("use_redis", true)
-
 	v.SetDefault("redis.ip2location.host", "127.0.0.1")
 	v.SetDefault("redis.ip2location.port", "6379")
 	v.SetDefault("redis.ip2location.db", 1)

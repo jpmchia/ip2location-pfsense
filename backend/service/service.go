@@ -136,6 +136,16 @@ func ingestLog(c echo.Context) error {
 	return c.JSON(http.StatusOK, resultid)
 }
 
+func ip2Results(c echo.Context) error {
+	resultid := c.QueryParam("resultid")
+	LogDebug("Received request for resultid: %s\n", resultid)
+	resultset, err := pfsense.GetResult(resultid)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad Request")
+	}
+	return c.JSON(http.StatusOK, resultset)
+}
+
 // Returns IP2Location results
 // Expected input is a resultid from a previous request, supplied as a query parameter
 // e.g. http://localhost:9999/ip2lresults?resultid=xxxxxxxx
