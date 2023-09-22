@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"ip2location-pfsense/ip2location"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -12,7 +13,10 @@ var lookupCmd = &cobra.Command{
 	Short: "Retrieve information for the specified IP address",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		ip2location.RetrieveIpLocation(args[0], args[0])
+		_, err := ip2location.RetrieveIpLocation(args[0], args[0])
+		if err != nil {
+			log.Fatal("Unable to add lookup command")
+		}
 	},
 }
 

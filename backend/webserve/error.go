@@ -75,8 +75,9 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	c.Echo().Renderer = t
-	c.Render(http.StatusOK, "error.html.tmpl", map[string]interface{}{
+	err = c.Render(http.StatusOK, "error.html.tmpl", map[string]interface{}{
 		"code":    code,
 		"message": message,
 	})
+	HandleError(err, "Unable to render error page")
 }
