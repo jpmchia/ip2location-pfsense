@@ -13,12 +13,6 @@ func main() {
 	log.Default().Printf("[main] Starting %v ...", appName)
 
 	flag.Parse()
-	debugPtr := flag.Bool("debug", false, "verbose output")
-
-	if *debugPtr {
-		util.Debug = true
-		util.LogDebug("[main] Debugging enabled")
-	}
 
 	util.LogDebug("[main] Initialising service ...")
 

@@ -15,33 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*
-Author: Jean-Paul Chia
-Copyright © 2023 TerraNet UK <info@terranet.uk>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package cmd
 
 import (
 	"os"
 
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/util"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -75,21 +54,21 @@ func Execute() {
 // init is called prior to any command execution.
 func init() {
 	// var cfgFile string
-	cfgFile := "config.yaml"
+	//cfgFile := "config.yaml"
 
 	// Define global persistent flags
-	rootCmd.PersistentFlags().StringVarP(&config.CfgFile, "config", "c", cfgFile, "specifiy the filename and path of the configiration file")
-	rootCmd.PersistentFlags().BoolVarP(&util.Debug, "debug", "v", false, "output verbose debugging information")
+	//rootCmd.PersistentFlags().StringVarP(&config.CfgFile, "config", "c", cfgFile, "specifiy the filename and path of the configiration file")
+	//rootCmd.PersistentFlags().BoolVarP(&util.Debug, "debug", "v", false, "output verbose debugging information")
 	// rootCmd.PersistentFlags().BoolVar(&redis, "redis", true, "use Redis cache")
 
 	// Bind flags to viper
-	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
-	util.HandleError(err, "Unable to bind flag to viper")
+	//err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	//util.HandleError(err, "Unable to bind flag to viper")
 
-	if util.Debug {
-		util.LogDebug("Debugging verbose mode enabled")
-	}
+	//if util.Debug {
+	//	util.LogDebug("Debugging verbose mode enabled")
+	//}
 
-	// Load configuration
-	config.LoadConfigProvider(cfgFile)
+	// // Load configuration
+	// config.LoadConfigProvider(cfgFile)
 }
