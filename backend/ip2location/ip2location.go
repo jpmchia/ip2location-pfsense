@@ -51,11 +51,7 @@ func (e *ApiErr) Error() string {
 func init() {
 	util.LogDebug("[ip2location] Loading configuration for IP2Location cache.")
 
-	var conf, err = config.LoadConfiguration()
-	if err != nil {
-		util.HandleFatalError(err, "[ip2location] Failed to load configuration: %s", err.Error())
-	}
-
+	var conf = config.GetConfiguration()
 	Ip2ApiConfig = conf.IP2API
 
 	util.LogDebug("[ip2location] IP2Location API configuration: %v", Ip2ApiConfig)

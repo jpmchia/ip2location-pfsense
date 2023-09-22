@@ -29,9 +29,9 @@ func init() {
 // Create Redis cache instances based on the configuration
 func CreateInstances() {
 	util.LogDebug("[cache] Mapping Redis config")
-	conf := config.GetConfig().Get("redis")
+	conf := config.GetConfiguration().Redis
 
-	for key, val := range conf.(map[string]interface{}) {
+	for key, val := range conf {
 		util.LogDebug("[cache] Redis config: %v = %v", key, val)
 
 		subkey := fmt.Sprintf("redis.%s", key)

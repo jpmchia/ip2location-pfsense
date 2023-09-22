@@ -29,23 +29,25 @@ var healthcheck string
 // var valid_api_keys map[string]string
 
 func init() {
-	config.LoadConfigProvider("IP2Location-pfSense")
-	bind_host = config.GetConfig().GetString("service.bind_host")
-	bind_port = config.GetConfig().GetString("service.bind_port")
-	use_ssl = config.GetConfig().GetBool("service.use_ssl")
-	ssl_cert = config.GetConfig().GetString("service.ssl_cert")
-	ssl_key = config.GetConfig().GetString("service.ssl_key")
+
+	config.Configure()
+
+	bind_host = config.GetConfiguration().Service.BindHost
+	bind_host = config.GetConfiguration().Service.BindPort
+	use_ssl = config.GetConfiguration().Service.UseSSL
+	ssl_cert = config.GetConfiguration().Service.SSLCert
+	ssl_key = config.GetConfiguration().Service.SSLKey
 
 	util.LogDebug("Initialising service and binding on %v:%v", bind_host, bind_port)
-	ingest_logs = config.GetConfig().GetString("service.ingest_logs")
+	ingest_logs = config.GetConfiguration().Service.IngestLogs
 	util.LogDebug("Ingest logs: %v", ingest_logs)
-	ip_requests = config.GetConfig().GetString("service.ip_requests")
+	ip_requests = config.GetConfiguration().Service.IPRequests
 	util.LogDebug("IP requests: %v", ip_requests)
-	ip2l_results = config.GetConfig().GetString("service.ip2l_results")
+	ip2l_results = config.GetConfiguration().Service.Results
 	util.LogDebug("IP2Location results: %v", ip2l_results)
-	ip2geomap = config.GetConfig().GetString("service.ip2geomap")
+	ip2geomap = config.GetConfiguration().Service.DetailPage
 	util.LogDebug("IP2Location GeoMap: %v", ip2geomap)
-	healthcheck = config.GetConfig().GetString("service.healthcheck")
+	healthcheck = config.GetConfiguration().Service.HealthCheck
 	util.LogDebug("Health check: %v", healthcheck)
 }
 
@@ -80,7 +82,7 @@ func Start(args []string) {
 				util.LogDebug("[service] Missing API key")
 				return false, errors.New("missing api key")
 			}
-			valid_api_keys := config.GetConfig().GetStringSlice("apikeys")
+			valid_api_keys := config.ConfigProvider().GetStringSlice("apikeys")
 			for _, valid_key := range valid_api_keys {
 				if key == valid_key {
 					util.LogDebug("[service] Valid API key recieved.")
@@ -101,7 +103,7 @@ func Start(args []string) {
 
 	util.LogDebug("[service] Service called with: %s", strings.Join(args, " "))
 
-	useCache := config.GetConfig().GetBool("use_cache")
+	useCache := config.GetConfiguration().UseRedis
 	if useCache {
 		log.Print("Using Redis cache")
 		cache.CreateInstances()

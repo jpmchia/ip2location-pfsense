@@ -1,13 +1,13 @@
 package config
 
 type Options struct {
-	InstallationPath string                    `mapstructure:"installation_path"`
-	IP2API           Ip2ApiOptions             `mapstructure:"ip2api"`
-	Redis            map[string]RedisOptions   `mapstructure:"redis"`
-	JsonLogs         bool                      `mapstructure:"jsonlogs"`
-	LogLevel         string                    `mapstructure:"loglevel"`
-	UseRedis         bool                      `mapstructure:"use_redis"`
-	Service          map[string]ServiceOptions `mapstructure:"service"`
+	InstallationPath string                  `mapstructure:"installation_path"`
+	IP2API           Ip2ApiOptions           `mapstructure:"ip2api"`
+	Redis            map[string]RedisOptions `mapstructure:"redis"`
+	JsonLogs         bool                    `mapstructure:"jsonlogs"`
+	LogLevel         string                  `mapstructure:"loglevel"`
+	UseRedis         bool                    `mapstructure:"use_redis"`
+	Service          ServiceOptions          `mapstructure:"service"`
 }
 
 type RedisOptions struct {
@@ -32,6 +32,7 @@ type ServiceOptions struct {
 	BindPort    string `mapstructure:"bind_port"`
 	SSLCert     string `mapstructure:"ssl_cert"`
 	SSLKey      string `mapstructure:"ssl_key"`
+	UseSSL      bool   `mapstructure:"use_ssl"`
 	IngestLogs  string `mapstructure:"ingest_logs"`
 	Results     string `mapstructure:"ip2l_results"`
 	DetailPage  string `mapstructure:"ip2geomap"`
