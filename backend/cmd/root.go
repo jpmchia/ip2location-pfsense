@@ -41,15 +41,9 @@ import (
 	"ip2location-pfsense/util"
 	. "ip2location-pfsense/util"
 
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/util"
-	. "ip2location-pfsense/util"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-var redis bool
 
 var redis bool
 
@@ -63,14 +57,12 @@ displaying IP geolocation information on pfSense devices. This service
 is designed for use with the IP2Location pfSense dashboard widget. 
 
 Download the widget from: https://github.com/jpmchia/IP2Location-pfSense
-Download the widget from: https://github.com/jpmchia/IP2Location-pfSense
 
 The service facilitates the retrieval of geolocation and other auxiliary
 information assocated with a specified IPv4 or IPv6 address from the API
 provided by IP2Location.io. 
 
-Register for a free API account at: https://www.ip2location.io/dashboard`,
-Register for a free API account at: https://www.ip2location.io/dashboard`,
+Register for a free API account at: https://www.ip2location.io/dashboard.`,
 	Run: func(cmd *cobra.Command, args []string) {},
 }
 
@@ -84,7 +76,6 @@ func Execute() {
 }
 
 // init is called prior to any command execution.
-// init is called prior to any command execution.
 func init() {
 	// var cfgFile string
 	cfgFile := "config.yaml"
@@ -95,7 +86,7 @@ func init() {
 	// rootCmd.PersistentFlags().BoolVar(&redis, "redis", true, "use Redis cache")
 
 	// Bind flags to viper
-	//viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 
 	if Debug {
 		LogDebug("Debugging verbose mode enabled")

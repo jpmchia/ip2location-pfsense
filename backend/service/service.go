@@ -67,6 +67,7 @@ func Start(args []string) {
 	e.GET(ip2l_results, ip2Results)
 	e.GET(ip2geomap, ip2MapResults)
 	e.POST(ip_requests, ipRequest)
+	e.GET(ip2geomap, ip2GeoMap)
 
 	g := e.Group("/api")
 
@@ -136,19 +137,9 @@ func ingestLog(c echo.Context) error {
 	return c.JSON(http.StatusOK, resultid)
 }
 
-func ip2Results(c echo.Context) error {
-	resultid := c.QueryParam("resultid")
-	LogDebug("Received request for resultid: %s\n", resultid)
-	resultset, err := pfsense.GetResult(resultid)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
-	}
-	return c.JSON(http.StatusOK, resultset)
-}
-
 // Returns IP2Location results
 // Expected input is a resultid from a previous request, supplied as a query parameter
-// e.g. http://localhost:9999/ip2lresults?resultid=xxxxxxxx
+// e.g. http://localhost:9999/ip2lresults?id=xxxxxxxx
 func ip2Results(c echo.Context) error {
 	resultid := c.QueryParam("id")
 	LogDebug("[service] Received request for resultid: %s\n", resultid)
@@ -162,7 +153,7 @@ func ip2Results(c echo.Context) error {
 // Static file handler for the IP2Location GeoMap
 // Returns the HTML file for the GeoMap page
 func ip2GeoMap(c echo.Context) error {
-	return c.File("ip2geomap.html")
+	return c.File("index.html")
 }
 
 // Responds to requests from the static geomap page
