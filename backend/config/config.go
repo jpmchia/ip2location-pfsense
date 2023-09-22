@@ -3,11 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
-	"fmt"
-	"os"
 	"time"
-
-	. "ip2location-pfsense/util"
 
 	. "ip2location-pfsense/util"
 
@@ -33,11 +29,6 @@ type Provider interface {
 	IsSet(key string) bool
 }
 
-var Config Options
-
-const appName string = "IP2Location-pfSense"
-
-var CfgFile string = "config.yaml"
 var Config Options
 
 const appName string = "IP2Location-pfSense"
@@ -84,7 +75,6 @@ func LoadConfigProvider(appName string) Provider {
 	return initViperConfig(appName)
 }
 
-func SetValue(key string, value interface{}) {
 func SetValue(key string, value interface{}) {
 	defaultConfig.Set(key, value)
 }
