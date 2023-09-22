@@ -22,4 +22,4 @@ jobs:
         go-version: '1.21'
 
     - name: Build
-      run: go build -v backend/
+      run: go build -v .
