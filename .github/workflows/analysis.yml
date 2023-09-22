@@ -1,6 +1,10 @@
 name: code-analysis
 on: [push, pull_request]
-
+defaults:
+  run:
+    shell: bash
+    working-directory: ./backend
+    
 jobs:
     golangci:
       runs-on: ubuntu-latest
