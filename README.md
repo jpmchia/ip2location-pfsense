@@ -25,6 +25,5 @@ If you have SSH acceess configured on the pfSense box, installation is as easy a
 The dashboard widget targets and has been tested on pfSense+ version 23.0.5.1. It may work on other versions, but this has not been tested. The widget is comprised of PHP AJAX and supporting Javascript packages.
 
 ```
-```shellscript
 ./scripts/update_pfsense.sh <username>@<host>
 ```
