@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"ip2location-pfsense/cmd"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 	"log"
 )
 
@@ -16,11 +16,11 @@ func main() {
 	debugPtr := flag.Bool("debug", false, "verbose output")
 
 	if *debugPtr {
-		Debug = true
-		LogDebug("[main] Debugging enabled")
+		util.Debug = true
+		util.LogDebug("[main] Debugging enabled")
 	}
 
-	LogDebug("[main] Initialising service ...")
+	util.LogDebug("[main] Initialising service ...")
 
 	cmd.Execute()
 }
