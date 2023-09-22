@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 
 	"github.com/spf13/viper"
 )
@@ -39,10 +39,10 @@ var defaultConfig *viper.Viper
 // Default initialiser for the applicaiton's configuration
 func init() {
 
-	LogDebug("Initialising configuration")
+	util.LogDebug("Initialising configuration")
 
 	_, err := LoadConfiguration()
-	HandleFatalError(err, "Unable to unmarshal configuration:\n")
+	util.HandleFatalError(err, "Unable to unmarshal configuration:\n")
 }
 
 // Config returns a default config provider
@@ -60,10 +60,10 @@ func LoadConfiguration() (Options, error) {
 	setConfigLocations(CfgFile)
 
 	err := defaultConfig.ReadInConfig()
-	HandleFatalError(err, "Unable to read configuration:\n")
+	util.HandleFatalError(err, "Unable to read configuration:\n")
 
 	err = defaultConfig.Unmarshal(&Config)
-	HandleFatalError(err, "Unable to unmarshal configuration:\n")
+	util.HandleFatalError(err, "Unable to unmarshal configuration:\n")
 	return Config, err
 }
 
@@ -128,7 +128,7 @@ func initViperConfig(appName string) *viper.Viper {
 
 // SetConfigLocations sets the locations to search for the configuration file
 func setConfigLocations(file string) {
-	LogDebug("Setting config locations")
+	util.LogDebug("Setting config locations")
 	CfgFile = file
 	// Use config file from the flag.
 	defaultConfig.SetConfigType("yaml")
@@ -138,7 +138,7 @@ func setConfigLocations(file string) {
 	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/opt/%s", appName))
 	home, err := os.UserHomeDir()
-	HandleError(err, "Unable to determine user's home directory")
+	util.HandleError(err, "Unable to determine user's home directory")
 	defaultConfig.AddConfigPath(fmt.Sprintf("%s/.%s", home, appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("%s/.config/%s", home, appName))
 	defaultConfig.AddConfigPath(home)
@@ -156,7 +156,7 @@ func WriteConfigValue(key string, value any) {
 	defaultConfig.Set(key, value)
 
 	err := defaultConfig.WriteConfig()
-	HandleFatalError("Unable to write configuration:\n", err.Error())
+	util.HandleFatalError("Unable to write configuration:\n", err.Error())
 }
 
 // ShowConfig prints the configuration to stdout
@@ -184,11 +184,11 @@ func CreateConfigFile(args []string) {
 		CfgFile = args[0]
 	}
 
-	LogDebug("Creating configuration file: %s", CfgFile)
+	util.LogDebug("Creating configuration file: %s", CfgFile)
 
 	// If a config file is found, read it in.
 	err := defaultConfig.SafeWriteConfigAs(CfgFile)
-	HandleFatalError(err, "Unable to write configuration:\n")
+	util.HandleFatalError(err, "Unable to write configuration:\n")
 
 	fmt.Printf("Configuration file created: %s", CfgFile)
 }

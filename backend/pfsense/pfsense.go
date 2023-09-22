@@ -10,7 +10,7 @@ import (
 
 	"ip2location-pfsense/cache"
 	"ip2location-pfsense/ip2location"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo"
@@ -41,7 +41,7 @@ func ProcessLog(c echo.Context) (*Ip2ResultId, error) {
 	err = json.NewDecoder(body).Decode(&logEntries)
 
 	if err != nil {
-		HandleFatalError(err, "[pfsense] Failed reading the request body %s", err)
+		util.HandleFatalError(err, "[pfsense] Failed reading the request body %s", err)
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error)
 	}
 
@@ -59,15 +59,15 @@ func ProcessLogEntries(logEntries FilterLog) int64 {
 	var ip2Map *Ip2Map
 
 	for _, logEntry := range logEntries {
-		LogDebug("[pfsense] Processing log entry: %v", logEntry)
+		util.LogDebug("[pfsense] Processing log entry: %v", logEntry)
 
 		ip2Map, err = EnrichLogWithIp(logEntry)
 
 		if ip2Map == nil && err == nil {
-			HandleError(err, "[pfsense] Failed to process log entry. ip2Map came back nil.")
+			util.HandleError(err, "[pfsense] Failed to process log entry. ip2Map came back nil.")
 			continue
 		} else if err != nil {
-			HandleError(err, "[pfsense] Failed to process log entry: %v", err)
+			util.HandleError(err, "[pfsense] Failed to process log entry: %v", err)
 			continue
 		}
 
@@ -97,7 +97,7 @@ func CacheResult(ip2MapList []Ip2Map) int64 {
 	res, err := rh.JSONSet(trunckey, ".", ip2MapList)
 
 	if err != nil {
-		HandleFatalError(err, "[pfsense] Failed to store results in cache @ %v", err)
+		util.HandleFatalError(err, "[pfsense] Failed to store results in cache @ %v", err)
 		return -1
 	}
 
@@ -111,11 +111,11 @@ func GetResult(resultid string) ([]Ip2Map, error) {
 	var rh *rejson.Handler = cache.Handler(pfSenseCache)
 	var err error
 
-	LogDebug("[pfsense] Attempting to retrieve from cache: %s", resultid)
+	util.LogDebug("[pfsense] Attempting to retrieve from cache: %s", resultid)
 
 	outJSON, err := redis.Bytes(rh.JSONGet(resultid, "."))
 	if err != nil {
-		LogDebug("[pfsense] Failed to JSONGet: %s", err.Error())
+		util.LogDebug("[pfsense] Failed to JSONGet: %s", err.Error())
 		return nil, nil
 	} else if err == nil {
 		result := []Ip2Map{}
@@ -133,11 +133,11 @@ func GetRawResult(resultid string) ([]byte, error) {
 	var rh *rejson.Handler = cache.Handler(pfSenseCache)
 	var err error
 
-	LogDebug("[pfsense] Attempting to retrieve from cache: %s", resultid)
+	util.LogDebug("[pfsense] Attempting to retrieve from cache: %s", resultid)
 
 	outBytes, err := redis.Bytes(rh.JSONGet(resultid, "."))
 	if err != nil {
-		LogDebug("[pfsense] Failed to JSONGet: %s", err.Error())
+		util.LogDebug("[pfsense] Failed to JSONGet: %s", err.Error())
 		return nil, nil
 	} else if err == nil {
 		log.Printf("[pfsense] Retrieved: %s", resultid)
@@ -152,26 +152,26 @@ func EnrichLogWithIp(logEntry LogEntry) (*Ip2Map, error) {
 	key, dir := DetermineIp(logEntry)
 
 	if key == "" || dir == "" {
-		LogDebug("[pfsense] No IP address to process - both private.")
+		util.LogDebug("[pfsense] No IP address to process - both private.")
 		return nil, nil
 	}
 
 	logEntry.Direction = strings.ToLower(dir)
 	nkey := strings.ReplaceAll(key, ":", ".")
-	LogDebug("Key: %v => %v %s %v", nkey, logEntry.Srcip, dir, logEntry.Dstip)
+	util.LogDebug("Key: %v => %v %s %v", nkey, logEntry.Srcip, dir, logEntry.Dstip)
 
 	ip2Location, err := ip2location.RetrieveIpLocation(key, nkey)
-	HandleError(err, "[pfsense] Unable to retrieve: %s", err)
+	util.HandleError(err, "[pfsense] Unable to retrieve: %s", err)
 
 	if err != nil {
-		LogDebug("[pfsense] Unable to retrieve: %s", err)
+		util.LogDebug("[pfsense] Unable to retrieve: %s", err)
 		return nil, err
 	}
 
 	ip2Map, err := CreateIp2Map(logEntry, ip2Location)
 
 	if err != nil {
-		LogDebug("[pfsense] Unable to create IP2Map: %s", err)
+		util.LogDebug("[pfsense] Unable to create IP2Map: %s", err)
 		return nil, err
 	}
 

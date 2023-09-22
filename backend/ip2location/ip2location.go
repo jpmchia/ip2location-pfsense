@@ -10,7 +10,7 @@ import (
 
 	"ip2location-pfsense/cache"
 	"ip2location-pfsense/config"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/nitishm/go-rejson/v4"
@@ -49,16 +49,16 @@ func (e *ApiErr) Error() string {
 }
 
 func init() {
-	LogDebug("[ip2location] Loading configuration for IP2Location cache.")
+	util.LogDebug("[ip2location] Loading configuration for IP2Location cache.")
 
 	var conf, err = config.LoadConfiguration()
 	if err != nil {
-		HandleFatalError(err, "[ip2location] Failed to load configuration: %s", err.Error())
+		util.HandleFatalError(err, "[ip2location] Failed to load configuration: %s", err.Error())
 	}
 
 	Ip2ApiConfig = conf.IP2API
 
-	LogDebug("[ip2location] IP2Location API configuration: %v", Ip2ApiConfig)
+	util.LogDebug("[ip2location] IP2Location API configuration: %v", Ip2ApiConfig)
 }
 
 func RetrieveIpLocation(ipAddress string, key string) (*Ip2LocationBasic, error) {
@@ -68,7 +68,7 @@ func RetrieveIpLocation(ipAddress string, key string) (*Ip2LocationBasic, error)
 
 	outJSON, err := redis.Bytes(rh.JSONGet(key, "."))
 	if err != nil {
-		LogDebug("Failed to JSONGet: %s", err.Error())
+		util.LogDebug("Failed to JSONGet: %s", err.Error())
 	} else if err == nil {
 		readIp := Ip2LocationBasic{}
 		err = json.Unmarshal(outJSON, &readIp)
@@ -78,7 +78,7 @@ func RetrieveIpLocation(ipAddress string, key string) (*Ip2LocationBasic, error)
 		}
 	}
 
-	LogDebug("[ip2location] Not found in cache: %s", key)
+	util.LogDebug("[ip2location] Not found in cache: %s", key)
 
 	if errors > Ip2ApiConfig.MaxErrors {
 		return nil, fmt.Errorf("not calling ip2location.io, many errors: %v", errors)
@@ -87,27 +87,27 @@ func RetrieveIpLocation(ipAddress string, key string) (*Ip2LocationBasic, error)
 	ip2location, err = LookupIPLocation(ipAddress)
 
 	if err != nil {
-		HandleError("[ip2location] Unable to retrieve: %s", err.Error())
+		util.HandleError("[ip2location] Unable to retrieve: %s", err.Error())
 		return nil, err
 	}
 
 	if ip2location == nil {
-		HandleError("[ip2location] Unable to retrieve: %s", err.Error())
+		util.HandleError("[ip2location] Unable to retrieve: %s", err.Error())
 		return nil, err
 	}
 
-	LogDebug("[ip2location] Adding IP2Location API response the cache: %v", ip2location)
+	util.LogDebug("[ip2location] Adding IP2Location API response the cache: %v", ip2location)
 
 	rh = cache.Handler(Ip2LocationCache)
 	_, err = rh.JSONSet(key, ".", *ip2location)
 	if err != nil {
-		HandleError(err, "[ip2location] Failed to store results in cache")
+		util.HandleError(err, "[ip2location] Failed to store results in cache")
 		return nil, err
 	}
 
 	b, err := json.MarshalIndent(*ip2location, "", "  ")
 	if err != nil { // Handle the error
-		HandleError(err, "[ip2location] Unable to marshal: %s", err)
+		util.HandleError(err, "[ip2location] Unable to marshal: %s", err)
 		return nil, err
 	}
 	log.Printf("[ip2location] Added to the cache: %s", b)
@@ -162,7 +162,7 @@ func LookupIPLocation(ipAddress string) (*Ip2LocationBasic, error) {
 	err = json.NewDecoder(resp.Body).Decode(&ipLocation)
 	resp.Body.Close()
 	if err != nil {
-		HandleError(err, "[ip2location] LookupIPLocation: JSON decode failed.\n %s", err.Error())
+		util.HandleError(err, "[ip2location] LookupIPLocation: JSON decode failed.\n %s", err.Error())
 		return nil, err
 	}
 

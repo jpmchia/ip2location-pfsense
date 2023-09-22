@@ -39,7 +39,6 @@ import (
 
 	"ip2location-pfsense/config"
 	"ip2location-pfsense/util"
-	. "ip2location-pfsense/util"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -85,10 +84,10 @@ func init() {
 
 	// Bind flags to viper
 	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
-	HandleError(err, "Unable to bind flag to viper")
+	util.HandleError(err, "Unable to bind flag to viper")
 
-	if Debug {
-		LogDebug("Debugging verbose mode enabled")
+	if util.Debug {
+		util.LogDebug("Debugging verbose mode enabled")
 	}
 
 	// Load configuration

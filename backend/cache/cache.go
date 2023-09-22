@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"ip2location-pfsense/config"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 
 	"github.com/nitishm/go-rejson/v4"
 	"github.com/redis/go-redis/v9"
@@ -21,22 +21,22 @@ var ctx = context.Background()
 var instances map[string]RedisInstance
 
 func init() {
-	LogDebug("[cache] Initialising cache service")
+	util.LogDebug("[cache] Initialising cache service")
 
 	instances = make(map[string]RedisInstance)
 }
 
 // Create Redis cache instances based on the configuration
 func CreateInstances() {
-	LogDebug("[cache] Mapping Redis config")
+	util.LogDebug("[cache] Mapping Redis config")
 	conf := config.GetConfig().Get("redis")
 
 	for key, val := range conf.(map[string]interface{}) {
-		LogDebug("[cache] Redis config: %v = %v", key, val)
+		util.LogDebug("[cache] Redis config: %v = %v", key, val)
 
 		subkey := fmt.Sprintf("redis.%s", key)
 		rc, err := LoadConfiguration(subkey)
-		HandleError(err, "[cache] Unable to load configuration for %s", key)
+		util.HandleError(err, "[cache] Unable to load configuration for %s", key)
 		CreateInstance(key, rc)
 	}
 }
@@ -66,21 +66,21 @@ func CreateInstance(name string, config RedisCacheConfig) RedisInstance {
 
 // Returns a Redis instance from the instances map
 func Instance(name string) RedisInstance {
-	LogDebug("[cache] Getting Redis instance: %v", name)
+	util.LogDebug("[cache] Getting Redis instance: %v", name)
 
 	return instances[name]
 }
 
 // Gets a value from the Redis instance
 func (ri RedisInstance) Get(key string) (interface{}, error) {
-	LogDebug("[cache] Getting key: %v from Redis instance: %v", key, ri)
+	util.LogDebug("[cache] Getting key: %v from Redis instance: %v", key, ri)
 
 	return ri.Rh.JSONGet(key, ".")
 }
 
 // Sets	a value in the Redis instance
 func Set(name string, key string, value interface{}) (interface{}, error) {
-	LogDebug("[cache] Setting key: %v to value: %v in Redis instance: %v", key, value, name)
+	util.LogDebug("[cache] Setting key: %v to value: %v in Redis instance: %v", key, value, name)
 	ri := instances[name]
 
 	ri.KeysSet++
@@ -89,7 +89,7 @@ func Set(name string, key string, value interface{}) (interface{}, error) {
 }
 
 func Handler(name string) *rejson.Handler {
-	LogDebug("[cache] Getting Redis handler for instance: %v", name)
+	util.LogDebug("[cache] Getting Redis handler for instance: %v", name)
 	ri := instances[name]
 	rh := rejson.NewReJSONHandler()
 	rh.SetGoRedisClientWithContext(ctx, ri.Rdb)

@@ -4,7 +4,7 @@ import (
 	"embed"
 	"html/template"
 	"io/fs"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -35,7 +35,7 @@ func ServeErrorTemplate(e *echo.Echo) *echo.Echo {
 		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
 	}
 
-	LogDebug("Template: %v", t)
+	util.LogDebug("Template: %v", t)
 
 	e.Renderer = t
 
@@ -66,7 +66,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 		if code == http.StatusForbidden {
 			message = "Forbidden"
 		}
-		LogDebug("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
+		util.LogDebug("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
 	}
 
 	// LogDebug("CustomHTTPErrorHandler: %d:%v", details.Code, details.Message)
@@ -79,5 +79,5 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 		"code":    code,
 		"message": message,
 	})
-	HandleError(err, "Unable to render error page")
+	util.HandleError(err, "Unable to render error page")
 }

@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,7 +15,7 @@ import (
 var embededFiles embed.FS
 
 func getFileSystem() http.FileSystem {
-	LogDebug("[webserve] Serving up embedded files ...")
+	util.LogDebug("[webserve] Serving up embedded files ...")
 	fsys, err := fs.Sub(embededFiles, "static")
 	if err != nil {
 		panic(err)
@@ -48,7 +48,7 @@ func ServeRenderTemplate(e *echo.Echo) *echo.Echo {
 	t := &TemplateRenderer{
 		templates: template.Must(template.ParseFS(embededFiles, "static/index.html.tmpl")),
 	}
-	LogDebug("Template: %v", t)
+	util.LogDebug("Template: %v", t)
 
 	e.Renderer = t
 

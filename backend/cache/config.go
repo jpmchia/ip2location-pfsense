@@ -2,7 +2,7 @@ package cache
 
 import (
 	"ip2location-pfsense/config"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 
 	"github.com/spf13/viper"
 )
@@ -23,20 +23,20 @@ var configuration *viper.Viper
 
 func LoadConfiguration(subkey string) (RedisCacheConfig, error) {
 	_, err := config.LoadConfiguration()
-	HandleFatalError(err, "[cache] Unable to load configuration")
+	util.HandleFatalError(err, "[cache] Unable to load configuration")
 
 	// redisConfigKey := options.Redis.Key
 	configuration = config.GetConfig()
-	LogDebug("[cache] Loading configuration for %s", subkey)
-	LogDebug("[cache] Configuration: %v", configuration.AllSettings())
+	util.LogDebug("[cache] Loading configuration for %s", subkey)
+	util.LogDebug("[cache] Configuration: %v", configuration.AllSettings())
 
 	subconfig := configuration.Sub(subkey)
 	if subconfig == nil {
-		HandleFatalError(nil, "[cache] Unable to find configuration for %s", subkey)
+		util.HandleFatalError(nil, "[cache] Unable to find configuration for %s", subkey)
 	}
 
 	redisConfig, err := loadConfig(subconfig)
-	HandleFatalError(err, "[cache] Unable to load configuration for %s", subkey)
+	util.HandleFatalError(err, "[cache] Unable to load configuration for %s", subkey)
 
 	return *redisConfig, err
 }

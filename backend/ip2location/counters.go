@@ -2,7 +2,7 @@ package ip2location
 
 import (
 	"fmt"
-	. "ip2location-pfsense/util"
+	"ip2location-pfsense/util"
 	"log"
 	"os"
 	"time"
@@ -34,12 +34,12 @@ var CounterValues CounterConfig
 var Counters *viper.Viper
 
 func init() {
-	LogDebug("Initialising counters")
+	util.LogDebug("Initialising counters")
 
 	Counters = initViperCounters(appNameCounters)
 	err := viper.Unmarshal(&CounterValues)
 
-	HandleFatalError(err, "Unable to unmarshal counter values:\n")
+	util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
 }
 
 func initViperCounters(appName string) *viper.Viper {
@@ -67,10 +67,10 @@ func LoadCounters() (CounterConfig, error) {
 	Counters = initViperCounters(appNameCounters)
 
 	err := Counters.ReadInConfig()
-	HandleError(err, "Unable to read counters file: %v\n", err.Error())
+	util.HandleError(err, "Unable to read counters file: %v\n", err.Error())
 
 	err = Counters.Unmarshal(&CounterValues)
-	HandleFatalError(err, "Unable to unmarshal counter values:\n")
+	util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
 
 	return CounterValues, err
 }
@@ -87,7 +87,7 @@ func InitailiseCounters(force bool) {
 			os.Exit(0)
 		}
 	} else {
-		LogDebug("No counters file found. Creating a new one.")
+		util.LogDebug("No counters file found. Creating a new one.")
 	}
 
 	Counters.Set("counters.limits.monthly", "30000")
@@ -105,12 +105,12 @@ func InitailiseCounters(force bool) {
 	log.Printf("Creating the local counters file: %s", localFile)
 
 	err = Counters.SafeWriteConfigAs(localFile)
-	HandleFatalError(err, "Unable to create counters file: %v\n", err.Error())
+	util.HandleFatalError(err, "Unable to create counters file: %v\n", err.Error())
 
 	err = Counters.Unmarshal(&CounterValues)
-	HandleFatalError(err, "Unable to unmarshal counter values:\n")
+	util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
 
-	LogDebug("Reinitialised counters")
+	util.LogDebug("Reinitialised counters")
 }
 
 func CreateCountersFile(args []string) {
@@ -124,16 +124,16 @@ func CreateCountersFile(args []string) {
 		localFile = args[0]
 	}
 
-	LogDebug("Creating the local counters file: %s", localFile)
+	util.LogDebug("Creating the local counters file: %s", localFile)
 
 	err := Counters.SafeWriteConfigAs(localFile)
-	HandleFatalError(err, "Unable to write configuration:\n")
+	util.HandleFatalError(err, "Unable to write configuration:\n")
 
 	fmt.Printf("Configuration file created: %s", localFile)
 }
 
 func setConfigLocations(v *viper.Viper) *viper.Viper {
-	LogDebug("Setting config locations")
+	util.LogDebug("Setting config locations")
 	// Use config file from the flag.
 	v.SetConfigFile(localFile)
 	v.AddConfigPath(".")
@@ -142,7 +142,7 @@ func setConfigLocations(v *viper.Viper) *viper.Viper {
 	v.AddConfigPath(fmt.Sprintf("/usr/local/%s", appName))
 	v.AddConfigPath(fmt.Sprintf("/usr/local/etc/%s", appName))
 	home, err := os.UserHomeDir()
-	HandleError(err, "Unable to determine user's home directory")
+	util.HandleError(err, "Unable to determine user's home directory")
 	v.AddConfigPath(fmt.Sprintf("%s/.%s", home, appName))
 	v.AddConfigPath(fmt.Sprintf("%s/.config/%s", home, appName))
 	v.AddConfigPath(home)
@@ -171,10 +171,10 @@ func UpdateCounters(addIncrements int) int {
 	Counters.Set("counters.lifetime", Counters.GetInt("counters.lifetime")+addIncrements)
 
 	err := Counters.WriteConfig()
-	HandleFatalError(err, "Unable to write configuration:\n")
+	util.HandleFatalError(err, "Unable to write configuration:\n")
 
 	err = Counters.Unmarshal(&CounterValues)
-	HandleFatalError(err, "Unable to unmarshal counter values:\n")
+	util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
 
 	return Counters.GetInt("counters.count")
 }
@@ -193,7 +193,7 @@ func CheckCounters() bool {
 
 	// Monthly counter
 	if dateTimeNow.After(dateTimeNextReset) {
-		LogDebug("Resetting counters")
+		util.LogDebug("Resetting counters")
 
 		Counters.Set("counters.lastreset", dateTimeNow.Format(time.RFC3339))
 		Counters.Set("counters.nextreset", dateTimeNow.AddDate(0, 1, 0).Format(time.RFC3339))
@@ -202,17 +202,17 @@ func CheckCounters() bool {
 		Counters.Set("counters.lastcheck", dateTimeNow.Format(time.RFC3339))
 
 		err := Counters.WriteConfig()
-		HandleFatalError(err, "Unable to write configuration:\n")
+		util.HandleFatalError(err, "Unable to write configuration:\n")
 
 		err = Counters.Unmarshal(&CounterValues)
-		HandleFatalError(err, "Unable to unmarshal counter values:\n")
+		util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
 
 		return true
 	}
 
 	// Daily counter, reset if the last reset was more than 24 hours ago
 	if dateTimeNow.After(dateTimeLastReset.AddDate(0, 0, 1)) {
-		LogDebug("Resetting daily counters")
+		util.LogDebug("Resetting daily counters")
 
 		Counters.Set("counters.lastreset", dateTimeNow.Format(time.RFC3339))
 		Counters.Set("counters.dailycount", 0)
@@ -222,7 +222,7 @@ func CheckCounters() bool {
 
 	// Instead of reseting the hourly counter, we just check what time the last reset was and we check how many hows until the 24 hours passes, then we adjust the hourly limit accordingly
 	if dateTimeNow.After(dateTimeLastCheck.Add(time.Hour)) {
-		LogDebug("Resetting hourly counters")
+		util.LogDebug("Resetting hourly counters")
 
 		Counters.Set("counters.lastcheck", dateTimeNow.Format(time.RFC3339))
 
@@ -249,10 +249,10 @@ func CheckCounters() bool {
 	}
 
 	err := Counters.WriteConfig()
-	HandleFatalError(err, "Unable to write configuration:\n")
+	util.HandleFatalError(err, "Unable to write configuration:\n")
 
 	err = Counters.Unmarshal(&CounterValues)
-	HandleFatalError(err, "Unable to unmarshal counter values:\n")
+	util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
 
 	return false
 }
