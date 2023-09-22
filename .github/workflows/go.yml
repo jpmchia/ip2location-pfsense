@@ -2,7 +2,11 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
 name: Go
-
+defaults:
+  run:
+    shell: bash
+    working-directory: ./backend
+    
 on:
   push:
     branches: [ "main" ]
