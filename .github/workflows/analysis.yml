@@ -1,0 +1,47 @@
+name: code-analysis
+on: [push, pull_request]
+defaults:
+  run:
+    shell: bash
+    working-directory: ./backend
+    
+jobs:
+    golangci:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Run golangci-lint
+          uses: golangci/golangci-lint-action@v3.7.0
+          with:
+          # golangci-lint working directory, default is project root
+            working-directory: backend 
+          
+    golangci-matrix:
+      name: staticheck
+      strategy:
+        fail-fast: false
+        matrix:
+          os: ["ubuntu-latest", "macOS-latest", "windows-latest" ]
+          go: ["1.20.x", "1.21.x"]
+      runs-on: ${{ matrix.os }}
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 1
+        - name: Setup Go
+          uses: actions/setup-go@v4
+          with:
+            go-version: '1.21'
+            check-latest: true
+            cache-dependency-path: '**/*.sum'
+          id: go
+        - uses: WillAbides/setup-go-faster@v1.7.0
+          with:
+            go-version: ${{ matrix.go }}
+        - uses: dominikh/staticcheck-action@v1.3.0
+          with:
+            version: "2023.1.3"
+            install-go: false
+            cache-key: ${{ matrix.go }}
+            working-directory: backend
