@@ -19,11 +19,8 @@ Please note that TLS / SSL support is not yet completed, so requests / repsonses
 
 ## pfSense dashboard widget
 
-For the moment, the dashboard widget and supporting files must be manually installed on your pfSense instance. Hopefully, the submission to as a pfSense package package will be succeesful. Until then, installation requires copying the contents of the pfSense-widget folder. 
-If you have SSH acceess configured on the pfSense box, installation is as easy as running the following command from a Linux terminal. Installation of the widget should not modify or overwrite any existing, standard pfSense files.
+For the moment, the dashboard widget and supporting files must be manually installed on your pfSense instance. pfSense package to be submitted. Until then, installation requires copying the contents of the pfSense/www folder. 
+If you have SSH acceess configured on the pfSense box, installation is as easy as running the following command from a bash terminal. Installation of the widget should not modify or overwrite any existing, standard pfSense files.
 ```shellscript
-scp --recurse ./pfsense/* root@<pfsense_ip>:/usr/local/www/
-
-make
-./build.sh
+./update_pfsense.sh
 ```

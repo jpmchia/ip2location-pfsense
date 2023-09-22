@@ -1,61 +1,101 @@
 package cache
 
 import (
-	"log"
-	"time"
+	"context"
+	"fmt"
+	"ip2location-pfsense/config"
+	. "ip2location-pfsense/util"
 
-	"github.com/gomodule/redigo/redis"
 	"github.com/nitishm/go-rejson/v4"
+	"github.com/redis/go-redis/v9"
 )
 
-type RedisCache struct {
-	RedisHostPort string
-	RedisDb       int
-	RedisAuth     string
-	RedisPass     string
+type RedisInstance struct {
+	Config  redis.Options
+	Rdb     *redis.Client
+	Rh      *rejson.Handler
+	KeysSet int
 }
 
-type Instance struct {
-	RedisInstance RedisCache
-	RedisPool     *redis.Pool
-	Rh            *rejson.Handler
-	ResultSet     int
-}
+var ctx = context.Background()
+var instances map[string]RedisInstance
 
 func init() {
+	LogDebug("Initialising cache service")
 
+	instances = make(map[string]RedisInstance)
 }
 
-func NewPool(ri RedisCache) *redis.Pool {
+// Create Redis cache instances based on the configuration
+func CreateInstances() {
 
-	log.Printf("Creating Redis client pool for database %d on %s.\n", ri.RedisDb, ri.RedisHostPort)
+	LogDebug("Executing CreateInstances")
 
-	return &redis.Pool{
+	LogDebug("Mapping Redis config")
+	conf := config.GetConfig().Get("redis")
 
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", ri.RedisHostPort, redis.DialDatabase(ri.RedisDb), redis.DialPassword(ri.RedisPass))
-			if err != nil {
-				return nil, err
-			}
-			if _, err := c.Do("SELECT", ri.RedisHostPort); err != nil {
-				err = c.Close()
-				return nil, err
-			}
-			if _, err := c.Do("AUTH", ri.RedisPass); err != nil {
-				err = c.Close()
-				return nil, err
-			}
-			return c, err
-		},
-		DialContext: nil,
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-		MaxIdle:         5,
-		MaxActive:       10,
-		IdleTimeout:     240 * time.Second,
-		Wait:            true,
-		MaxConnLifetime: 300 * time.Second,
+	for key, val := range conf.(map[string]interface{}) {
+		LogDebug("Redis config: %v = %v", key, val)
+
+		subkey := fmt.Sprintf("redis.%s", key)
+		rc, err := LoadConfiguration(subkey)
+		HandleError(err, "Unable to load configuration for %s", key)
+		CreateInstance(key, rc)
 	}
+}
+
+// Creates an instance of the Redis cache, stores a reference to it in the instances map and returns it
+func CreateInstance(name string, config RedisCacheConfig) RedisInstance {
+
+	options := redis.Options{
+		Addr:     config.HostPort,
+		Password: config.Pass,
+		DB:       config.Db,
+	}
+
+	instance := RedisInstance{
+		Config: options,
+		Rdb:    redis.NewClient(&options),
+		Rh:     rejson.NewReJSONHandler(),
+	}
+
+	instances[name] = instance
+
+	*instances[name].Rh = *rejson.NewReJSONHandler()
+	instances[name].Rh.SetGoRedisClientWithContext(ctx, instances[name].Rdb)
+
+	return instances[name]
+}
+
+// Returns a Redis instance from the instances map
+func Instance(name string) RedisInstance {
+	LogDebug("Getting Redis instance: %v", name)
+
+	return instances[name]
+}
+
+// Gets a value from the Redis instance
+func (ri RedisInstance) Get(key string) (interface{}, error) {
+	LogDebug("Getting key: %v from Redis instance: %v", key, ri)
+
+	return ri.Rh.JSONGet(key, ".")
+}
+
+// Sets	a value in the Redis instance
+func Set(name string, key string, value interface{}) (interface{}, error) {
+	LogDebug("Setting key: %v to value: %v in Redis instance: %v", key, value, name)
+	ri := instances[name]
+
+	ri.KeysSet++
+
+	return ri.Rh.JSONSet(key, ".", value)
+}
+
+func Handler(name string) *rejson.Handler {
+	LogDebug("Getting Redis handler for instance: %v", name)
+	ri := instances[name]
+	rh := rejson.NewReJSONHandler()
+	rh.SetGoRedisClientWithContext(ctx, ri.Rdb)
+
+	return rh
 }

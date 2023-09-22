@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"pfSense/version"
+	"ip2location-pfsense/version"
 
 	"github.com/spf13/cobra"
 )
