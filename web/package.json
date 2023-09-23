@@ -3,7 +3,26 @@
   "version": "0.0.1",
   "description": "IP2Location backend service and widget for pfSense",
   "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack serve",
+    "package": "webpack && cp ./dist/* ../backend/webserve/static/"
+  },
   "repository": "https://github.com/jpmchia/IP2Location-pfSense",
   "author": "jpmchia@gmail.com",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/three": "^0.156.0",
+    "gsap": "^3.12.2",
+    "three": "^0.156.1",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.198",
+    "lodash": "^4.17.21"
+  }
 }
