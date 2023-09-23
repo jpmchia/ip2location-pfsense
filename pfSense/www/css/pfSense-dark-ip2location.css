@@ -41,11 +41,17 @@ table[data-sortable].sortable-theme-bootstrap {
     padding: 4px 4px 4px 10px;
 }
 
-.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+.table>tbody>tr>td,
+.table>tbody>tr>th,
+.table>tfoot>tr>td,
+.table>tfoot>tr>th,
+.table>thead>tr>td,
+.table>thead>tr>th {
     padding: 4px 5px;
 }
 
-a.fa, i.fa {
+a.fa,
+i.fa {
     font-size: 14px;
 }
 
@@ -109,7 +115,54 @@ a.fa, i.fa {
     padding-right: 5px;
 }
 
-.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+.col-lg-1,
+.col-lg-10,
+.col-lg-11,
+.col-lg-12,
+.col-lg-2,
+.col-lg-3,
+.col-lg-4,
+.col-lg-5,
+.col-lg-6,
+.col-lg-7,
+.col-lg-8,
+.col-lg-9,
+.col-md-1,
+.col-md-10,
+.col-md-11,
+.col-md-12,
+.col-md-2,
+.col-md-3,
+.col-md-4,
+.col-md-5,
+.col-md-6,
+.col-md-7,
+.col-md-8,
+.col-md-9,
+.col-sm-1,
+.col-sm-10,
+.col-sm-11,
+.col-sm-12,
+.col-sm-2,
+.col-sm-3,
+.col-sm-4,
+.col-sm-5,
+.col-sm-6,
+.col-sm-7,
+.col-sm-8,
+.col-sm-9,
+.col-xs-1,
+.col-xs-10,
+.col-xs-11,
+.col-xs-12,
+.col-xs-2,
+.col-xs-3,
+.col-xs-4,
+.col-xs-5,
+.col-xs-6,
+.col-xs-7,
+.col-xs-8,
+.col-xs-9 {
     padding-right: 5px;
     padding-left: 5px;
 }
@@ -134,7 +187,12 @@ a.fa, i.fa {
     margin-bottom: 5px;
 }
 
-.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+.table>tbody>tr>td,
+.table>tbody>tr>th,
+.table>tfoot>tr>td,
+.table>tfoot>tr>th,
+.table>thead>tr>td,
+.table>thead>tr>th {
     /* padding: 4px 5px; */
     padding: 3px 5px;
 }
@@ -158,7 +216,7 @@ a:hover {
 
 /* Element | https://192.168.0.1/ */
 
-#widget-log-0_panel-body > table:nth-child(1) > tbody:nth-child(2) {
+#widget-log-0_panel-body>table:nth-child(1)>tbody:nth-child(2) {
     font-size: 10px;
 }
 
@@ -170,14 +228,14 @@ a:hover {
 
 /* Element | https://192.168.0.1/ */
 
-#widget-log-0_panel-body > table:nth-child(1) {
+#widget-log-0_panel-body>table:nth-child(1) {
     color: white;
 }
 
 #widget-available_panel-body {
     padding-left: 2rem;
-  }
-  
+}
+
 
 :root {
     font-family: "Inter";
@@ -186,7 +244,9 @@ a:hover {
     --color: #32a6ff
 }
 
-*, *:before, *:after {
+*,
+*:before,
+*:after {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -210,6 +270,7 @@ body {
     background: #18181b;
     z-index: 2
 }
+
 .panel:after {
     content: "";
     width: 0.25rem;
@@ -219,6 +280,7 @@ body {
     transition: transform 300ms ease;
     z-index: 4;
 }
+
 .panel:hover:after {
     transform: translateX(0.15rem)
 }
@@ -232,6 +294,7 @@ body {
     transition: transform 300ms ease;
     z-index: 5;
 }
+
 /*
 .panel:hover .panel-title {
   transform: translateX(0.1rem)
@@ -243,45 +306,60 @@ body {
     transition: transform 300ms ease;
     z-index: 5;
 }
+
 /*
 .body:hover .notibody {
   transform: translateX(0.25rem)
 }
 */
 
-.notiglow, .notiborderglow {
+.notiglow,
+.notiborderglow {
     transform: translate(-50%, -50%);
     background: radial-gradient(circle closest-side at center, white, transparent);
     opacity: 0;
     transition: opacity 300ms ease;
 }
-.notiglow { z-index: 3; }
-.notiborderglow { z-index: 1; }
 
-.noti:hover .notiglow {opacity: 0.1}
-.noti:hover .notiborderglow {opacity: 0.1}
+.notiglow {
+    z-index: 3;
+}
+
+.notiborderglow {
+    z-index: 1;
+}
+
+.noti:hover .notiglow {
+    opacity: 0.1
+}
+
+.noti:hover .notiborderglow {
+    opacity: 0.1
+}
 
 
 /* bootstrap.min.css | https://192.168.0.1/vendor/bootstrap/css/bootstrap.min.css */
 
-.btn.focus, .btn:focus, .btn:hover {
+.btn.focus,
+.btn:focus,
+.btn:hover {
     background-color: darkslategray;
-  }
-  
-  /* pfSense.css | https://192.168.0.1/css/pfSense.css */
-  
-  .btn {
+}
+
+/* pfSense.css | https://192.168.0.1/css/pfSense.css */
+
+.btn {
     background-color: lightslategray;
-  }
-  
+}
+
 
 /* pfSense-dark.css | https://192.168.0.1/css/pfSense-dark.css */
 
-.panel-default > .panel-heading {
+.panel-default>.panel-heading {
     /* background-color: #303030; */
     background-color: transparent;
-  }
-  
+}
+
 .panel-title {
     color: var(--color);
     padding: 0.25rem 0.25rem 0.25rem 0.25rem;
@@ -293,7 +371,75 @@ body {
     text-shadow: 1px 1px 1px rgba(90, 90, 90, 0.9);
     color: white;
 }
+
 #widget-available {
     border-radius: 1rem;
-  }
-  
+}
+
+
+/* pfSense-dark.css | https://192.168.0.1/css/pfSense-dark.css */
+
+.breadcrumb {
+    /* background-color: #303030; */
+    background-color: transparent;
+}
+
+.header {
+    /* background-color: #303030; */
+    /* box-shadow: 1px 1px 3px #151515; */
+    background-color: transparent;
+    box-shadow: none;
+}
+
+/* Element | https://192.168.0.1/ */
+
+.ip2l_status {
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Element | https://192.168.0.1/ */
+
+.subpanel-body {
+    margin: 0.5rem;
+}
+
+
+/* pfSense-dark-ip2location.css | https://192.168.0.1/css/pfSense-dark-ip2location.css?v=1695501711 */
+
+.panel-body {
+    overflow: clip;
+}
+
+.panel {
+    overflow: clip;
+    padding-bottom: 0;
+}
+
+td.bg-success {
+    display: block;
+    background-color: transparent;
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    color: #4caf50;
+    text-shadow: 1px 1px 1px rgba(120, 120, 120, 0.5);
+    padding: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+
+
+td.bg-info {
+    display: block;
+    background-color: transparent;
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    color: #3d83ff;
+    text-shadow: 1px 1px 1px rgba(120, 120, 120, 0.5);
+    padding: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+}

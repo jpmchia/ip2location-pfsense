@@ -33,6 +33,10 @@ function fetchMapData(widgetkey, resultsid) {
                 // Add markers to your Leaflet map here using the data
                 for (var i = 0; i < data.length; i++) {
                     item = data[i];
+                    if (item.latitude == 0 && item.longitude == 0) 
+                    {
+                        continue;                       
+                    }
                     var coordinates = [parseFloat(item.latitude), parseFloat(item.longitude)];
                     var marker = createMarker(item, coordinates);
                     marker.addTo(map);
@@ -96,10 +100,62 @@ function createMarker(item, coordinates) {
             break;
     }
     var coordinates = [parseFloat(item.latitude), parseFloat(item.longitude)];
-    var toolip_text = `<span class="ip2l-tooltip">${item.direction}<b>${item.interface}</b>${item.proto}:${item.srcip} =>${item.dstip}<br/>${item.city_name}, ${item.region_name}, ${item.ZipCode}, ${item.country_name}<br/>`;
-    var popup = `${item.interface}:${item.proto} ${item.direction} => ${item.srcip}<br/> IP: ${item.ip}<br/> Country: ${item.country_name}<br/> City: ${item.city_name}<br/> Region: ${item.region_name}, ${item.ZipCode}<br/> Timezone: ${item.TimeZone}<br/> ASN: ${item.Asn}<br/> AS: ${item.As}<br/> IsProxy: ${item.IsProxy}`;
+    var toolip_text = createTooltip(item);
     var new_marker = L.marker(coordinates, { icon: new_icon }).bindTooltip(toolip_text).openTooltip();
     return new_marker;
+}
+
+function textise(text, prefix) {
+    if (text == undefined || text == null) {
+        return "";
+    } else {
+        return prefix + text;
+    }
+}
+
+function action_icon(item) {
+    var act_icon;
+    switch (item.act) {
+        case "pass":
+            if (item.direction == "in") {
+                act_icon = '<i class="fa fa-arrow-circle-down text-success"></i>';
+            } else {
+                act_icon = '<i class="fa fa-arrow-circle-up text-success"></i>';
+            }
+            break;
+        case "block":
+        case "reject":
+        default:
+            if (item.direction == "in") {
+                act_icon = '<i class="fa fa-arrow-circle-down text-danger"></i>';
+            } else {
+                act_icon = '<i class="fa fa-arrow-circle-up text-danger"></i>';
+            }
+            break;
+    }
+    return act_icon;
+}
+
+function createTooltip(item) {
+    return `<table class="ip2l_ttt">
+    <tr>
+        <td class="ip2l_ttl" rowspan="4"><p>${item.interface}</p><p>${action_icon(item)}</p><p>${item.proto}</p></td>    
+        <td class="ip2l_ttr" colspan="2">${item.time}</td>
+    </tr>
+    <tr>
+        
+        <td class="ip2l_tth">Src IP: </td>
+        <td class="ip2l_ttr">${item.srcip}</td>        
+    </tr>
+    <tr>
+        <td class="ip2l_tth">Dst IP: </td>
+        <td class="ip2l_ttr">${item.dstip}${textise(item.dstport, " : ")}</td>
+    </tr>
+    <tr>
+        <td class="ip2l_ttr" colspan="3">${textise(item.city_name, "")}, ${textise(item.region_name, "")}, ${textise(item.country_name, "")}</td>
+    </tr>
+    <tr>
+    </table>`;
 }
 
 function createTableRow(item) {
@@ -125,6 +181,7 @@ function createTableRow(item) {
     var row = `<tr><td>${act_icon}</td><td>${item.time}</td><td>${item.interface}</td><td>${item.srcip}</td><td>${item.dstip}</td></tr><tr><td>${item.direction}</td><td>${item.proto}</td><td>${item.city_name}, ${item.country_name}</td><td>${item.As}, ${item.Asn}</td></tr>`;
     return row;
 }
+
 
 function generateTableHead(table, data) {
     let thead = table.createTHead();

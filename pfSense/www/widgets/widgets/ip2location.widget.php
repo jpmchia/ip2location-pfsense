@@ -8,7 +8,7 @@ require_once("pfsense-utils.inc");
 require_once("functions.inc");
 require_once("syslog.inc");
 
-global $ip2l_results, $ip2l_display_status;
+global $ip2l_results, $ip2l_display_status, $ip2l_filterlog_time;
 
 function create_url($hostport, $path) {
     $url = $hostport . $path;
@@ -43,10 +43,10 @@ function check_api($healthUrl)
 }
 
 
-function extract_ip_entries($logarr, $seconds)
+function extract_ip_entries($logarr, $seconds, $filterlog_time)
 {
 	$ip2l_display_status = sprintf("Extracting the last %s seconds of log entries.<br/>", $seconds);
-	$timeCap = time() - $seconds;
+	$timeCap = $filterlog_time - $seconds;
 	$loggedIps = [];
 	$count = 0;
 	foreach ($logarr as $entry) {
@@ -252,8 +252,11 @@ $ip2l_health = isset($user_settings['widgets'][$widgetkey]['ip2l_health']) ? $us
 $ip2l_details_page = isset($user_settings['widgets'][$widgetkey]['ip2l_details_page']) ? $user_settings['widgets'][$widgetkey]['ip2l_details_page'] : "/index.html";
 $ip2l_token = isset($user_settings['widgets'][$widgetkey]['ip2l_token']) ? $user_settings['widgets'][$widgetkey]['ip2l_token'] : 'valid-key';
 
+$ip2l_filterlog_time = time();
+
 $filter_logfile = "{$g['varlog_path']}/filter.log";
 $widgetkey_nodash = str_replace("-", "", $widgetkey);
+
 $health = check_api(create_url($ip2l_api_hostport, $ip2l_health));
 if ($health == "false") {
 	$ip2l_display_status = "IP2Location API is not available.";
@@ -263,8 +266,8 @@ if ($health == "false") {
 	$filter_log = conv_log_filter($filter_logfile, $ip2l_max_entries, 5000, $ip2l_fields_array);
 	$ip2l_display_status = sprintf("Filter log entries: %d\n", $ip2l_max_entries);
 
-	$ip_log_items = extract_ip_entries($filter_log, $ip2l_log_seconds);
-	$ip2l_display_status = sprintf(" Displaying location of %d IP addresses, from the last 30% seconds of log items.\n", count($ip_log_items), $ip2l_log_seconds);
+	$ip_log_items = extract_ip_entries($filter_log, $ip2l_log_seconds, $ip2l_filterlog_time);
+	$ip2l_display_status = sprintf(" <b>%s</b> Displaying location of %d IP addresses filtered in the last %d seconds.\n", date("H:i:s", $ip2l_filterlog_time), count($ip_log_items), $ip2l_log_seconds);
 
 	$ip2l_submit_url = create_url($ip2l_api_hostport, $ip2l_submit_api);
 	$ip2l_results_url = create_url($ip2l_api_hostport, $ip2l_results_api);
@@ -300,7 +303,7 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 ?>
 
 <!-- This is the body of the widget and will be AJAX-refreshed -->
-<link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
+<link rel="stylesheet" href="/widgets/widgets/ip2location.widget.css"/>
 <script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
 <script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
 
