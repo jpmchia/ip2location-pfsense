@@ -4,8 +4,9 @@ import (
 	"embed"
 	"html/template"
 	"io/fs"
-	"ip2location-pfsense/util"
 	"net/http"
+
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/labstack/echo/v4"
 )
@@ -72,7 +73,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	// LogDebug("CustomHTTPErrorHandler: %d:%v", details.Code, details.Message)
 	t := &TemplateRenderer{
 		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
-	}github.com/jpmchia/ip2location-pfsense/backend/
+	}
 
 	c.Echo().Renderer = t
 	err = c.Render(http.StatusOK, "error.html.tmpl", map[string]interface{}{

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jpmchia/IP2Location-pfSense/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
 
 	"github.com/spf13/cobra"
 )

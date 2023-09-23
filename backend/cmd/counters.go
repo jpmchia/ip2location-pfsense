@@ -3,8 +3,8 @@ package cmd
 import (
 	"log"
 
-	"github.com/jpmchia/IP2Location-pfSense/ip2location"
-	"github.com/jpmchia/IP2Location-pfSense/service"
+	"github.com/jpmchia/ip2location-pfsense/backend/ip2location"
+	"github.com/jpmchia/ip2location-pfsense/backend/service"
 
 	"github.com/spf13/cobra"
 )
