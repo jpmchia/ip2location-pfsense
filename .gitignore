@@ -24,3 +24,8 @@ target
 # Go workspace file
 go.work
 backend/ip2location-pfsense
+
+# Local configuration files
+config.yaml
+counter.yaml
+
