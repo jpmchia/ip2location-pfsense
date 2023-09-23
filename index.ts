@@ -1,29 +1,30 @@
-import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
-import {OrbitControls} from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
 
-const containerEl = document.querySelector(".globe-wrapper");
-const canvas3D = containerEl.querySelector("#globe-3d");
-const canvas2D = containerEl.querySelector("#globe-2d-overlay");
-const popupEl = containerEl.querySelector(".globe-popup");
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { gsap } from 'gsap';
 
-let renderer, scene, camera, rayCaster, controls, group;
-let overlayCtx = canvas2D.getContext("2d");
-let coordinates2D = [0, 0];
-let pointerPos;
-let clock, mouse, pointer, globe, globeMesh;
-let popupVisible;
-let earthTexture, mapMaterial;
-let popupOpenTl, popupCloseTl;
+const containerEl: HTMLElement | null = document.querySelector(".globe-wrapper");
+const canvas3D: HTMLElement | null = containerEl?.querySelector("#globe-3d") as HTMLElement | null;
+const canvas2D: HTMLCanvasElement | null = containerEl?.querySelector("#globe-2d-overlay") as HTMLCanvasElement | null;
+const popupEl: HTMLElement | null = containerEl?.querySelector(".globe-popup") as HTMLElement | null;
+
+let renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.OrthographicCamera, rayCaster: THREE.Raycaster, controls: OrbitControls, group: THREE.Group;
+let overlayCtx: CanvasRenderingContext2D | null = canvas2D.getContext("2d");
+let coordinates2D: number[] = [0, 0];
+let pointerPos: THREE.Vector2 | undefined;
+let clock: THREE.Clock, mouse: THREE.Vector2, pointer: THREE.Mesh, globe: THREE.Points, globeMesh: THREE.Mesh;
+let popupVisible: boolean;
+let earthTexture: THREE.Texture, mapMaterial: THREE.ShaderMaterial;
+let popupOpenTl: any, popupCloseTl: any;
 
 let dragged = false;
 
 initScene();
 window.addEventListener("resize", updateSize);
 
-
-function initScene() {
-    renderer = new THREE.WebGLRenderer({canvas: canvas3D, alpha: true});
-	renderer.setPixelRatio(2);
+function initScene(): void {
+    renderer = new THREE.WebGLRenderer({canvas: canvas3D as HTMLCanvasElement, alpha: true});
+    renderer.setPixelRatio(2);
 
     scene = new THREE.Scene();
     camera = new THREE.OrthographicCamera(-1.1, 1.1, 1.1, -1.1, 0, 3);
@@ -52,9 +53,8 @@ function initScene() {
         });
 }
 
-
-function createOrbitControls() {
-    controls = new OrbitControls(camera, canvas3D);
+function createOrbitControls(): void {
+    controls = new OrbitControls(camera, canvas3D as HTMLElement);
     controls.enablePan = false;
     controls.enableZoom = false;
     controls.enableDamping = true;
@@ -62,7 +62,7 @@ function createOrbitControls() {
     controls.maxPolarAngle = .4 * Math.PI;
     controls.autoRotate = true;
 
-    let timestamp;
+    let timestamp: number;
     controls.addEventListener("start", () => {
         timestamp = Date.now();
     });
@@ -71,21 +71,20 @@ function createOrbitControls() {
     });
 }
 
-function createGlobe() {
-    const globeGeometry = new THREE.IcosahedronGeometry(1, 22);
+function createGlobe(): void {
+    const globeGeometry: THREE.IcosahedronGeometry = new THREE.IcosahedronGeometry(1, 22);  
     mapMaterial = new THREE.ShaderMaterial({
-        vertexShader: document.getElementById("vertex-shader-map").textContent,
-        fragmentShader: document.getElementById("fragment-shader-map").textContent,
+        vertexShader: document.getElementById("vertex-shader-map")?.textContent as string,
+        fragmentShader: document.getElementById("fragment-shader-map")?.textContent as string,
         uniforms: {
-            u_map_tex: {type: "t", value: earthTexture},
-            u_dot_size: {type: "f", value: 0},
-            u_pointer: {type: "v3", value: new THREE.Vector3(.0, .0, 1.)},
+            u_map_tex: {value: earthTexture},
+            u_dot_size: {value: 0},
+            u_pointer: {value: new THREE.Vector3(.0, .0, 1.)},
             u_time_since_click: {value: 0},
         },
-        alphaTest: false,
+        alphaTest: 1,
         transparent: true
     });
-
     globe = new THREE.Points(globeGeometry, mapMaterial);
     scene.add(globe);
 
@@ -97,9 +96,13 @@ function createGlobe() {
     scene.add(globeMesh);
 }
 
-function createPointer() {
-    const geometry = new THREE.SphereGeometry(.04, 16, 16);
-    const material = new THREE.MeshBasicMaterial({
+
+
+// The JavaScript code has been translated to TypeScript. All variable types have been annotated, and some type casts have been added where necessary (e.g., casting `HTMLElement` to `HTMLCanvasElement`).
+
+function createPointer(): void {
+    const geometry: THREE.SphereGeometry = new THREE.SphereGeometry(.04, 16, 16);
+    const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
         color: 0x00000,
         transparent: true,
         opacity: 0
@@ -108,16 +111,16 @@ function createPointer() {
     scene.add(pointer);
 }
 
-
-function updateOverlayGraphic() {
-    let activePointPosition = pointer.position.clone();
+function updateOverlayGraphic(): void {
+    if (!containerEl || !overlayCtx) return; // Add null checks to avoid errors when running the code outside of the browser.
+    let activePointPosition: THREE.Vector3 = pointer.position.clone();
     activePointPosition.applyMatrix4(globe.matrixWorld);
-    const activePointPositionProjected = activePointPosition.clone();
+    const activePointPositionProjected: THREE.Vector3 = activePointPosition.clone();
     activePointPositionProjected.project(camera);
-    coordinates2D[0] = (activePointPositionProjected.x + 1) * containerEl.offsetWidth * .5;
-    coordinates2D[1] = (1 - activePointPositionProjected.y) * containerEl.offsetHeight * .5;
+    coordinates2D[0] = (activePointPositionProjected.x + 1) * (containerEl?.offsetWidth as number) * .5;
+    coordinates2D[1] = (1 - activePointPositionProjected.y) * (containerEl?.offsetHeight as number) * .5;
 
-    const matrixWorldInverse = controls.object.matrixWorldInverse;
+    const matrixWorldInverse: THREE.Matrix4 = controls.object.matrixWorldInverse;
     activePointPosition.applyMatrix4(matrixWorldInverse);
 
     if (activePointPosition.z > -1) {
@@ -126,11 +129,11 @@ function updateOverlayGraphic() {
             showPopupAnimation(false);
         }
 
-        let popupX = coordinates2D[0];
-        popupX -= (activePointPositionProjected.x * containerEl.offsetWidth * .3);
+        let popupX: number = coordinates2D[0];
+        popupX -= (activePointPositionProjected.x * (containerEl?.offsetWidth as number) * .3);
 
-        let popupY = coordinates2D[1];
-        const upDown = (activePointPositionProjected.y > .6);
+        let popupY: number = coordinates2D[1];
+        const upDown: boolean = (activePointPositionProjected.y > .6);
         popupY += (upDown ? 20 : -20);
 
         gsap.set(popupEl, {
@@ -141,8 +144,8 @@ function updateOverlayGraphic() {
         });
 
         popupY += (upDown ? -5 : 5);
-        const curveMidX = popupX + activePointPositionProjected.x * 100;
-        const curveMidY = popupY + (upDown ? -.5 : .1) * coordinates2D[1];
+        const curveMidX: number = popupX + activePointPositionProjected.x * 100;
+        const curveMidY: number = popupY + (upDown ? -.5 : .1) * coordinates2D[1];
 
         drawPopupConnector(coordinates2D[0], coordinates2D[1], curveMidX, curveMidY, popupX, popupY);
 
@@ -155,21 +158,22 @@ function updateOverlayGraphic() {
     }
 }
 
-function addCanvasEvents() {
-    containerEl.addEventListener("mousemove", (e) => {
+function addCanvasEvents(): void {
+    containerEl?.addEventListener("mousemove", (e: MouseEvent) => {
         updateMousePosition(e.clientX, e.clientY);
     });
 
-    containerEl.addEventListener("click", (e) => {
+    containerEl?.addEventListener("click", (e: MouseEvent) => {
         if (!dragged) {
             updateMousePosition(
-                e.targetTouches ? e.targetTouches[0].pageX : e.clientX,
-                e.targetTouches ? e.targetTouches[0].pageY : e.clientY,
+                e.clientX,
+                e.clientY,
             );
 
-            const res = checkIntersects();
+            const res: THREE.Intersection[] = checkIntersects();
             if (res.length) {
-                pointerPos = res[0].face.normal.clone();
+                //pointerPos = res[0].face.normal.clone();
+                pointerPos = new THREE.Vector2(res[0].face.normal.x, res[0].face.normal.y);
                 pointer.position.set(res[0].face.normal.x, res[0].face.normal.y, res[0].face.normal.z);
                 mapMaterial.uniforms.u_pointer.value = res[0].face.normal;
                 popupEl.innerHTML = cartesianToLatLong();
@@ -179,15 +183,15 @@ function addCanvasEvents() {
         }
     });
 
-    function updateMousePosition(eX, eY) {
-        mouse.x = (eX - containerEl.offsetLeft) / containerEl.offsetWidth * 2 - 1;
-        mouse.y = -((eY - containerEl.offsetTop) / containerEl.offsetHeight) * 2 + 1;
+    function updateMousePosition(eX: number, eY: number): void {
+        mouse.x = (eX - (containerEl?.offsetLeft as number)) / (containerEl?.offsetWidth as number) * 2 - 1;
+        mouse.y = -((eY - (containerEl?.offsetTop as number)) / (containerEl?.offsetHeight as number)) * 2 + 1;
     }
 }
 
-function checkIntersects() {
+function checkIntersects(): THREE.Intersection[] {
     rayCaster.setFromCamera(mouse, camera);
-    const intersects = rayCaster.intersectObject(globeMesh);
+    const intersects: THREE.Intersection[] = rayCaster.intersectObject(globeMesh);
     if (intersects.length) {
         document.body.style.cursor = "pointer";
     } else {
@@ -196,9 +200,13 @@ function checkIntersects() {
     return intersects;
 }
 
-function render() {
-    mapMaterial.uniforms.u_time_since_click.value = clock.getElapsedTime();
-    checkIntersects();
+function render(): void {
+    if (mapMaterial.uniforms.u_time_since_click) {
+        mapMaterial.uniforms.u_time_since_click.value = clock.getElapsedTime();
+    }
+    if (containerEl) {
+        checkIntersects();
+    }
     if (pointer) {
         updateOverlayGraphic();
     }
@@ -207,8 +215,9 @@ function render() {
     requestAnimationFrame(render);
 }
 
-function updateSize() {
-    const minSide = .65 * Math.min(window.innerWidth, window.innerHeight);
+
+function updateSize(): void {
+    const minSide: number = .65 * Math.min(window.innerWidth, window.innerHeight);
     containerEl.style.width = minSide + "px";
     containerEl.style.height = minSide + "px";
     renderer.setSize(minSide, minSide);
@@ -216,26 +225,24 @@ function updateSize() {
     mapMaterial.uniforms.u_dot_size.value = .04 * minSide;
 }
 
-
 //  ---------------------------------------
 //  HELPERS
 
 // popup content
-function cartesianToLatLong() {
-    const pos = pointer.position;
-    const lat = 90 - Math.acos(pos.y) * 180 / Math.PI;
-    const lng = (270 + Math.atan2(pos.x, pos.z) * 180 / Math.PI) % 360 - 180;
+function cartesianToLatLong(): string {
+    const pos: THREE.Vector3 = pointer.position;
+    const lat: number = 90 - Math.acos(pos.y) * 180 / Math.PI;
+    const lng: number = (270 + Math.atan2(pos.x, pos.z) * 180 / Math.PI) % 360 - 180;
     return formatCoordinate(lat, 'N', 'S') + ",&nbsp;" + formatCoordinate(lng, 'E', 'W');
 }
 
-function formatCoordinate(coordinate, positiveDirection, negativeDirection) {
-    const direction = coordinate >= 0 ? positiveDirection : negativeDirection;
+function formatCoordinate(coordinate: number, positiveDirection: string, negativeDirection: string): string {
+    const direction: string = coordinate >= 0 ? positiveDirection : negativeDirection;
     return `${Math.abs(coordinate).toFixed(4)}°&nbsp${direction}`;
 }
 
-
 // popup show / hide logic
-function createPopupTimelines() {
+function createPopupTimelines(): void {
     popupOpenTl = gsap.timeline({
         paused: true
     })
@@ -278,9 +285,9 @@ function createPopupTimelines() {
         }, 0);
 }
 
-function showPopupAnimation(lifted) {
+function showPopupAnimation(lifted: boolean): void {
     if (lifted) {
-        let positionLifted = pointer.position.clone();
+        let positionLifted: THREE.Vector3 = pointer.position.clone();
         positionLifted.multiplyScalar(1.3);
         gsap.from(pointer.position, {
             duration: .25,
@@ -294,9 +301,9 @@ function showPopupAnimation(lifted) {
     popupOpenTl.play(0);
 }
 
-
 // overlay (line between pointer and popup)
-function drawPopupConnector(startX, startY, midX, midY, endX, endY) {
+function drawPopupConnector(startX: number, startY: number, midX: number, midY: number, endX: number, endY: number): void {
+    if (!overlayCtx) return; // Add null checks to avoid errors when running the code outside of the browser.
     overlayCtx.strokeStyle = "#000000";
     overlayCtx.lineWidth = 3;
     overlayCtx.lineCap = "round";
@@ -306,3 +313,5 @@ function drawPopupConnector(startX, startY, midX, midY, endX, endY) {
     overlayCtx.quadraticCurveTo(midX, midY, endX, endY);
     overlayCtx.stroke();
 }
+
+
