@@ -104,30 +104,19 @@ a.fa, i.fa {
 
 /* bootstrap.min.css | https://192.168.0.1/vendor/bootstrap/css/bootstrap.min.css */
 
-/* bootstrap.min.css | https://192.168.0.1/vendor/bootstrap/css/bootstrap.min.css */
-
 .container {
-    /* padding-right: 15px; */
-    /* padding-left: 15px; */
     padding-left: 5px;
     padding-right: 5px;
 }
 
 .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
-    /* padding-right: 15px; */
-    /* padding-left: 15px; */
     padding-right: 5px;
     padding-left: 5px;
 }
 
-/* pfSense.css | https://192.168.0.1/css/pfSense.css */
-
 .panel {
-    /* border-radius: 0; */
-    /* box-shadow: 0px 3px 7px rgba(0,0,0,.1); */
-    /* border-radius: 1rem 1rem 0 0; */
     background: #29292c;
-    border-radius: 1rem;
+    border-radius: 1.25rem;
 }
 
 .header {
@@ -184,6 +173,11 @@ a:hover {
 #widget-log-0_panel-body > table:nth-child(1) {
     color: white;
 }
+
+#widget-available_panel-body {
+    padding-left: 2rem;
+  }
+  
 
 :root {
     font-family: "Inter";
@@ -266,3 +260,40 @@ body {
 
 .noti:hover .notiglow {opacity: 0.1}
 .noti:hover .notiborderglow {opacity: 0.1}
+
+
+/* bootstrap.min.css | https://192.168.0.1/vendor/bootstrap/css/bootstrap.min.css */
+
+.btn.focus, .btn:focus, .btn:hover {
+    background-color: darkslategray;
+  }
+  
+  /* pfSense.css | https://192.168.0.1/css/pfSense.css */
+  
+  .btn {
+    background-color: lightslategray;
+  }
+  
+
+/* pfSense-dark.css | https://192.168.0.1/css/pfSense-dark.css */
+
+.panel-default > .panel-heading {
+    /* background-color: #303030; */
+    background-color: transparent;
+  }
+  
+.panel-title {
+    color: var(--color);
+    padding: 0.25rem 0.25rem 0.25rem 0.25rem;
+    font-family: "Inter";
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: transform 300ms ease;
+    z-index: 5;
+    text-shadow: 1px 1px 1px rgba(90, 90, 90, 0.9);
+    color: white;
+}
+#widget-available {
+    border-radius: 1rem;
+  }
+  

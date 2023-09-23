@@ -26,7 +26,6 @@ func getErrorFileSystem() http.FileSystem {
 // ServeEmbedded serves the embedded files
 func ServeEmbeddedErrorFiles(e *echo.Echo) *echo.Echo {
 	assetHandler := http.FileServer(getErrorFileSystem())
-	// e.GET("/", echo.WrapHandler(assetHandler))
 	e.GET("/error/error.html.tmpl", echo.WrapHandler(http.StripPrefix("/error/", assetHandler)))
 	return e
 }
@@ -35,11 +34,8 @@ func ServeErrorTemplate(e *echo.Echo) *echo.Echo {
 	t := &TemplateRenderer{
 		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
 	}
-
 	util.LogDebug("Template: %v", t)
-
 	e.Renderer = t
-
 	return e
 }
 
@@ -53,19 +49,18 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 
 	if he, ok := err.(*echo.HTTPError); ok {
 		details := err.(*echo.HTTPError)
-		code = details.Code
-		message = details.Message.(string)
-		if code == http.StatusNotFound {
+
+		switch code := details.Code; code {
+		case http.StatusNotFound:
 			message = "Page not found"
-		}
-		if code == http.StatusInternalServerError {
+		case http.StatusInternalServerError:
 			message = "Internal server error"
-		}
-		if code == http.StatusUnauthorized {
-			message = "Unauthorized"
-		}
-		if code == http.StatusForbidden {
+		case http.StatusUnauthorized:
+			message = "Not authorised"
+		case http.StatusForbidden:
 			message = "Forbidden"
+		default:
+			message = details.Message.(string)
 		}
 		util.LogDebug("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
 	}
@@ -76,6 +71,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	c.Echo().Renderer = t
+	util.LogDebug("CustomHTTPErrorHandler: Rendering template with code %d and message %s", code, message)
 	err = c.Render(http.StatusOK, "error.html.tmpl", map[string]interface{}{
 		"code":    code,
 		"message": message,
