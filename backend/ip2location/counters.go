@@ -54,15 +54,15 @@ type CounterValues struct {
 	HourlyLimit       int
 }
 
-const appName string = "github.com/jpmchia/ip2location-pfsense/backend"
-const appNameCounters string = "github.com/jpmchia/ip2location-pfsense/backend-Counters"
+var appName string = "github.com/jpmchia/ip2location-pfsense/backend"
+var appNameCounters string = "github.com/jpmchia/ip2location-pfsense/backend-counters"
 
 var localFile string = "counters.yaml"
 var Counters ActiveCounters
 var CountersProvider *viper.Viper
 
 func init() {
-	util.LogDebug("Initialising counters")
+	util.LogDebug("Initialising counters %s", appName)
 
 	CountersProvider = initViperCounters(appNameCounters)
 
@@ -98,7 +98,7 @@ func initViperCounters(appName string) *viper.Viper {
 	v.SetDefault("counters.cachehits", 0)
 	v.SetDefault("counters.cachemisses", 0)
 	v.SetDefault("counters.enabled", true)
-
+	v = setCounterLocations(v)
 	return v
 }
 
@@ -128,9 +128,10 @@ func readCounterValues(filename string, v *viper.Viper) (*ActiveCounters, error)
 	if err != nil {
 		util.HandleError(err, "Unable to read counters file: %v\n", err.Error())
 		// Create a new counters file
-		InitailiseCounters(filename, 30000, 900, 900, false)
+		InitialiseCounters(filename, 30000, 900, 900, false)
 		// Read the new counters file
 		err = v.ReadInConfig()
+		util.HandleError(err, "Unable to read counters file: %v\n", err.Error())
 	}
 
 	err = v.Unmarshal(&Counters)
@@ -139,7 +140,7 @@ func readCounterValues(filename string, v *viper.Viper) (*ActiveCounters, error)
 	return &Counters, err
 }
 
-func InitailiseCounters(filename string, monthly int, daily int, hourly int, force bool) {
+func InitialiseCounters(filename string, monthly int, daily int, hourly int, force bool) {
 
 	viper := initViperCounters(appNameCounters)
 
@@ -196,11 +197,7 @@ func InitailiseCounters(filename string, monthly int, daily int, hourly int, for
 	util.LogDebug("Reinitialised counters")
 }
 
-// Create a new counters file - --force, --filename <filename>, --monthly <max>, --daily <max>, --hourly <max>
-func createCountersFile(args []string) {
-	if len(args) == 0 {
-		fmt.Printf("No filename specified. Using the default file: %s", localFile)
-	}
+func createCountersFile(filename string) {
 
 	// TODO: Read in arguments for the monthly, daily and hourly limits
 	util.LogDebug("Creating the local counters file: %s", localFile)
@@ -211,6 +208,7 @@ func createCountersFile(args []string) {
 	fmt.Printf("Configuration file created: %s", localFile)
 }
 
+// Create a new counters file - --force, --filename <filename>, --monthly <max>, --daily <max>, --hourly <max>
 func CreateCountersFile(args []string) {
 	var filename string
 	// var force bool = false
@@ -229,7 +227,11 @@ func CreateCountersFile(args []string) {
 	}
 
 	var provider = initViperCounters(appNameCounters)
-	readCounterValues(filename, provider)
+	// Load existing
+	_, err := readCounterValues(filename, provider)
+	util.HandleError(err, "Unable to read counters file:\n")
+
+	createCountersFile(filename)
 }
 
 func printCounters(v *viper.Viper) {
@@ -264,7 +266,7 @@ func IncrementCounters(api int, apimiss int, cache int, cachemiss int) error {
 	return nil
 }
 
-func WriteBackCounters(values CounterValues, andWrite bool) error {
+func WriteBackCounters(values CounterValues, andWrite bool) {
 
 	CountersProvider.Set("counters.monthly.count", Counters.Monthly.Count+int64(values.ApiCalls))
 	CountersProvider.Set("counters.daily.count", Counters.Daily.Count+int64(values.ApiCalls))
@@ -280,11 +282,7 @@ func WriteBackCounters(values CounterValues, andWrite bool) error {
 
 		err = CountersProvider.Unmarshal(&Counters)
 		util.HandleFatalError(err, "Unable to unmarshal counter values:\n")
-
-		return err
 	}
-
-	return nil
 }
 
 /*
@@ -309,6 +307,7 @@ func GetRemainingThisDay() int {
 		Counters.Daily.Count = 0
 		Counters.Daily.NextReset = time.Now().UTC().AddDate(0, 0, 1)
 		go WriteBackCounters(CounterValues{}, true)
+		util.HandleError(nil, "Unable to write back counters")
 	}
 	if Counters.Daily.Max == 0 {
 		return -1
