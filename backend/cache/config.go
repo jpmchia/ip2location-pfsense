@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/spf13/viper"
 )

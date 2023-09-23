@@ -2,14 +2,15 @@ package service
 
 import (
 	"errors"
-	"ip2location-pfsense/cache"
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/pfsense"
-	"ip2location-pfsense/util"
-	"ip2location-pfsense/webserve"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/jpmchia/ip2location-pfsense/backend/cache"
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/pfsense"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/webserve"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -33,7 +34,7 @@ func init() {
 	config.Configure()
 
 	bind_host = config.GetConfiguration().Service.BindHost
-	bind_host = config.GetConfiguration().Service.BindPort
+	bind_port = config.GetConfiguration().Service.BindPort
 	use_ssl = config.GetConfiguration().Service.UseSSL
 	ssl_cert = config.GetConfiguration().Service.SSLCert
 	ssl_key = config.GetConfiguration().Service.SSLKey

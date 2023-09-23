@@ -3,8 +3,9 @@ package cache
 import (
 	"context"
 	"fmt"
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/util"
+
+	"github.com/jpmchia/IP2Location-pfSense/config"
+	"github.com/jpmchia/IP2Location-pfSense/util"
 
 	"github.com/nitishm/go-rejson/v4"
 	"github.com/redis/go-redis/v9"

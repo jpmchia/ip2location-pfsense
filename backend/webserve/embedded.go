@@ -5,8 +5,9 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"ip2location-pfsense/util"
 	"net/http"
+
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/labstack/echo/v4"
 )

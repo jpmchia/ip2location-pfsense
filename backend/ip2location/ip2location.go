@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"time"
 
-	"ip2location-pfsense/cache"
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/cache"
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/nitishm/go-rejson/v4"

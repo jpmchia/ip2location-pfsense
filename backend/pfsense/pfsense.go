@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"ip2location-pfsense/cache"
-	"ip2location-pfsense/ip2location"
-	"ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/cache"
+	"github.com/jpmchia/ip2location-pfsense/backend/ip2location"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo"
@@ -28,7 +28,7 @@ const pfSenseCache string = "pfsense"
 
 func init() {
 	// LogDebug("Loading configuration for pfSense")
-	// c := config.LoadConfigProvider("IP2Location-pfSense")
+	// c := config.LoadConfigProvider("github.com/jpmchia/ip2location-pfsense/backend")
 	// c.Get(pfSenseCache)
 	//cache.LoadConfiguration(pfSenseCacheConfig)
 }
