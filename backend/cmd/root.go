@@ -20,15 +20,22 @@ package cmd
 import (
 	"os"
 
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var cfgFile string
+var projectBase string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ip2location-pfsense",
+	Use:   "github.com/jpmchia/IP2Location-pfSense",
 	Short: "IP2Location backend service for pfSense",
 	Long: `
-p2location_pfsense is a backend service and CLI tool for retrieving and 
+ip2location_pfsense is a backend service and CLI tool for retrieving and 
 displaying IP geolocation information on pfSense devices. This service 
 is designed for use with the IP2Location pfSense dashboard widget. 
 
@@ -39,7 +46,10 @@ information assocated with a specified IPv4 or IPv6 address from the API
 provided by IP2Location.io. 
 
 Register for a free API account at: https://www.ip2location.io/dashboard.`,
-	Run: func(cmd *cobra.Command, args []string) {},
+	TraverseChildren: true,
+	Run: func(cmd *cobra.Command, args []string) {
+
+	},
 }
 
 // Adds all child commands to the root command and sets flags appropriately.
@@ -53,17 +63,20 @@ func Execute() {
 
 // init is called prior to any command execution.
 func init() {
-	// var cfgFile string
-	//cfgFile := "config.yaml"
+
+	cfgFile := "config.yaml"
+	cobra.OnInitialize(initConfig)
 
 	// Define global persistent flags
-	//rootCmd.PersistentFlags().StringVarP(&config.CfgFile, "config", "c", cfgFile, "specifiy the filename and path of the configiration file")
-	//rootCmd.PersistentFlags().BoolVarP(&util.Debug, "debug", "v", false, "output verbose debugging information")
-	// rootCmd.PersistentFlags().BoolVar(&redis, "redis", true, "use Redis cache")
+	rootCmd.PersistentFlags().StringVarP(&config.CfgFile, "config", "c", cfgFile, "specifiy the filename and path of the configiration file")
+	rootCmd.PersistentFlags().StringVarP(&projectBase, "projectbase", "b", "https://github.com/jpmchia/IP2Location-pfSense", "base project directory")
+	rootCmd.PersistentFlags().BoolVarP(&util.Debug, "debug", "v", false, "output verbose debugging information")
 
 	// Bind flags to viper
-	//err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
-	//util.HandleError(err, "Unable to bind flag to viper")
+	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	util.HandleError(err, "Unable to bind flag to viper")
+	err = viper.BindPFlag("projectbase", rootCmd.PersistentFlags().Lookup("projectbase"))
+	util.HandleError(err, "Unable to bind flag to viper")
 
 	//if util.Debug {
 	//	util.LogDebug("Debugging verbose mode enabled")
@@ -71,4 +84,11 @@ func init() {
 
 	// // Load configuration
 	// config.LoadConfigProvider(cfgFile)
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		config.CfgFile = cfgFile
+		config.SetConfigFile(cfgFile)
+	}
 }

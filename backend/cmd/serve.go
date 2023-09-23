@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"ip2location-pfsense/service"
+	"github.com/jpmchia/ip2location-pfsense/backend/service"
 
 	"github.com/spf13/cobra"
 )

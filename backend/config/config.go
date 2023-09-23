@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/spf13/viper"
 )
@@ -31,7 +31,7 @@ type Provider interface {
 
 var Config Options
 
-const appName string = "IP2Location-pfSense"
+const appName string = "github.com/jpmchia/ip2location-pfsense/backend"
 
 var CfgFile string = "config.yaml"
 var defaultConfig *viper.Viper

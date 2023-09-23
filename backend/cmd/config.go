@@ -5,8 +5,9 @@ package cmd
 
 import (
 	"fmt"
-	"ip2location-pfsense/config"
 	"log"
+
+	"github.com/jpmchia/IP2Location-pfSense/config"
 
 	"github.com/spf13/cobra"
 )
