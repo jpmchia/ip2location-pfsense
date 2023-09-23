@@ -11,22 +11,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// type CounterConfig struct {
-// Enabled    bool   `mapstructure:"enabled"`
-// StartDate  string `mapstructure:"startdate"`  // The date the counters were started
-// LastReset  string `mapstructure:"lastreset"`  // The date the counters were last reset
-// ResetLimit string `mapstructure:"limitreset"` // The date and time the hourly and daily limits will be reset
-// LastCheck  string `mapstructure:"lastcheck"`  // The last time we checked the counters and limits
-// NextReset  string `mapstructure:"nextreset"`  // The date the monthly counters will be reset
-// Limits     struct {
-// 	Monthly string `mapstructure:"monthly"`
-// 	Daily   string `mapstructure:"daily"`
-// 	Hourly  string `mapstructure:"hourly"`
-// } `mapstructure:"limits"`
-// Lifetime string `mapstructure:"lifetime"`
-// Action   string `mapstructure:"action"`
-// }
-
 type Counter struct {
 	Max       int64
 	Count     int64
@@ -285,22 +269,6 @@ func WriteBackCounters(values CounterValues, andWrite bool) {
 	}
 }
 
-/*
-func GetRemainingThisHour() int {
-	if Counters.Hourly.Max == 0 {
-		return -1
-	}
-	if Counters.Hourly.Count >= Counters.Hourly.Max {
-		return 0
-	}
-	if (time.Now().UTC().After(Counters.Hourly.NextReset)) {
-		Counters.Hourly.Count = 0
-		Counters.Hourly.NextReset = time.Now().UTC().Add(time.Hour)
-	}
-	return int(Counters.Hourly.Max - Counters.Hourly.Count)
-}
-*/
-
 func GetRemainingThisDay() int {
 
 	if time.Now().UTC().After(Counters.Daily.NextReset) {
@@ -363,17 +331,6 @@ func GetRemainingCount() (int, int, int) {
 }
 
 func ResetCounters(args []string) {
-
-	// var filename string
-
-	// if len(args) == 0 {
-	// 	fmt.Printf("No filename specified. Using the default file: %s", localFile)
-	// 	filename = localFile
-	// } else {
-	// 	filename = args[0]
-	// }
-	// filename = localFile
-
 	// TODO
 	//InitailiseCounters(args[0], args[1], args[2], args[3], true)
 	//provider = InitailiseCounters(filename, 30000, 900, 900, true)
