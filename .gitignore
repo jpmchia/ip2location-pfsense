@@ -29,5 +29,14 @@ backend/ip2location-pfsense
 config.yaml
 counter.yaml
 
-# 
-WIP
+# Local development files
+WIP/
+contrib/ssl/*.conf
+contrib/ssl/*.key
+contrib/ssl/*.pem
+contrib/ssl/*.csr
+local/
+```
+contrib/ssl/localhost.crt
+contrib/ssl/localCA.srl
+contrib/ssl/localCA.conf

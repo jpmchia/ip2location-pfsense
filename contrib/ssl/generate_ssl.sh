@@ -18,4 +18,7 @@ openssl req -x509 -new -nodes -key localCA.key -passin pass:$ROOT_CA_PASSWORD -c
 openssl genrsa -out localhost.key 4096
 
 # Generate a Certificate Signing Request (CSR) based on that private key (reusing the localCA.conf details)
-openssl req -new -key local.key -out local.csr -config localCA.conf
+openssl req -new -key localhost.key -out localhost.csr -config localCA.conf
+
+# Create the certificate for the webserver to serve using the localhost.conf config.
+openssl x509 -req -in localhost.csr -CA localCA.pem -CAkey localCA.key -CAcreateserial -out localhost.crt -days 1024 -sha256 -extfile localhost.conf -passin pass:$ROOT_CA_PASSWORD

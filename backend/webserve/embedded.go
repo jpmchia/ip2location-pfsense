@@ -37,6 +37,7 @@ func LoadTemplates() error {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
 	}
+
 	tmplFiles, err := fs.ReadDir(files, templateDir)
 	if err != nil {
 		return err

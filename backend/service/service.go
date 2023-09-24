@@ -1,6 +1,8 @@
 package service
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"log"
 	"net/http"
@@ -35,6 +37,7 @@ func init() {
 
 	bind_host = config.GetConfiguration().Service.BindHost
 	bind_port = config.GetConfiguration().Service.BindPort
+
 	use_ssl = config.GetConfiguration().Service.UseSSL
 	ssl_cert = config.GetConfiguration().Service.SSLCert
 	ssl_key = config.GetConfiguration().Service.SSLKey
@@ -50,6 +53,26 @@ func init() {
 	util.LogDebug("IP2Location GeoMap: %v", ip2geomap)
 	healthcheck = config.GetConfiguration().Service.HealthCheck
 	util.LogDebug("Health check: %v", healthcheck)
+}
+
+func loadCert(certFile string, keyFile string) (tls.Certificate, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return cert, err
+	}
+	return cert, nil
+}
+
+func loadCACert(caFile string) (*x509.CertPool, error) {
+	caCert, err := tls.LoadX509KeyPair(caFile, caFile)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert.Certificate[0])
+
+	return caCertPool, nil
 }
 
 // Service is the main entry point for the service

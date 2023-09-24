@@ -5,12 +5,12 @@ x509_extensions = v3_req
 
 [ req_distinguished_name ]
 C = GB
-ST = England
-L = London
-O = TerraNet UK
-OU = Development
-CN = terra-net.uk
-emailAddress = admin@terra-net.uk
+ST = <State>
+L = <City>
+O = <Organisation>
+OU = <Unit>
+CN = <Common Name>
+emailAddress = <admin@local.com>
 
 [ v3_req ]
 keyUsage = critical, digitalSignature, keyAgreement
@@ -19,5 +19,5 @@ subjectAltName = @alt_names
 
 [ alt_names ]
 DNS.1 = localhost
-DNS.2 = ganymede.terra-net.uk
-DNS.3 = ganymede
+DNS.2 = corshost
+DNS.3 = devhost
