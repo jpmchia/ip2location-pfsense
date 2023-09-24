@@ -178,3 +178,5 @@ contrib/ssl/*.pem
 contrib/ssl/*.srl
 contrib/ssl/*.crt
 contrib/ssl/*.csr
+
+web/.yarn-integrity
