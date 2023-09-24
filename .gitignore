@@ -156,3 +156,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+local/**/*
+contrib/ssl/*.key
+contrib/ssl/*.pem
+contrib/ssl/*.srl
+contrib/ssl/*.crt
+contrib/ssl/*.csr
