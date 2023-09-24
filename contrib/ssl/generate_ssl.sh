@@ -10,9 +10,11 @@ ROOT_CA_PASSWORD="changeme"
 
 # Generate the root key with the supplied password for the local certificate authority
 openssl genrsa -des3 -passout pass:$ROOT_CA_PASSWORD -out localCA.key 4096
+#openssl genrsa -des3 -passout -out localCA.key 4096
 
 # Generate a root-certificate based on the root-key
 openssl req -x509 -new -nodes -key localCA.key -passin pass:$ROOT_CA_PASSWORD -config localCA.conf -sha256 -days 365 -out localCA.pem
+#openssl req -x509 -new -nodes -key localCA.key -config localCA.conf -sha256 -days 365 -out localCA.pem
 
 # Generate a new private key
 openssl genrsa -out localhost.key 4096

@@ -147,14 +147,14 @@ func initViperConfig(appName string) *viper.Viper {
 
 // SetConfigLocations sets the locations to search for the configuration file
 func setConfigLocations(file string) {
-	util.LogDebug("Setting config locations")
+	util.LogDebug("[config] Setting config locations")
 	CfgFile = file
 	// Use config file from the flag.
 	defaultConfig.SetConfigType("yaml")
 	defaultConfig.SetConfigFile(CfgFile)
+	defaultConfig.AddConfigPath("./")
 	defaultConfig.AddConfigPath(fmt.Sprintf("/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/%s", appName))
-	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/opt/%s", appName))
 	home, err := os.UserHomeDir()
 	util.HandleError(err, "Unable to determine user's home directory")

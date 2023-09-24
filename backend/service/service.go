@@ -1,8 +1,6 @@
 package service
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"log"
 	"net/http"
@@ -20,9 +18,6 @@ import (
 
 var bind_host string
 var bind_port string
-var ssl_cert string
-var ssl_key string
-var use_ssl bool
 var ingest_logs string
 var ip_requests string
 var ip2l_results string
@@ -35,44 +30,26 @@ func init() {
 
 	config.Configure()
 
-	bind_host = config.GetConfiguration().Service.BindHost
-	bind_port = config.GetConfiguration().Service.BindPort
+	conf := config.GetConfiguration().Service
 
-	use_ssl = config.GetConfiguration().Service.UseSSL
-	ssl_cert = config.GetConfiguration().Service.SSLCert
-	ssl_key = config.GetConfiguration().Service.SSLKey
+	bind_host = conf.BindHost
+	bind_port = conf.BindPort
+
+	UseSSL = conf.UseSSL
+	ssl_cert = conf.SSLCert
+	ssl_key = conf.SSLKey
 
 	util.LogDebug("Initialising service and binding on %v:%v", bind_host, bind_port)
-	ingest_logs = config.GetConfiguration().Service.IngestLogs
+	ingest_logs = conf.IngestLogs
 	util.LogDebug("Ingest logs: %v", ingest_logs)
-	ip_requests = config.GetConfiguration().Service.IPRequests
+	ip_requests = conf.IPRequests
 	util.LogDebug("IP requests: %v", ip_requests)
-	ip2l_results = config.GetConfiguration().Service.Results
+	ip2l_results = conf.Results
 	util.LogDebug("IP2Location results: %v", ip2l_results)
-	ip2geomap = config.GetConfiguration().Service.DetailPage
+	ip2geomap = conf.DetailPage
 	util.LogDebug("IP2Location GeoMap: %v", ip2geomap)
-	healthcheck = config.GetConfiguration().Service.HealthCheck
+	healthcheck = conf.HealthCheck
 	util.LogDebug("Health check: %v", healthcheck)
-}
-
-func loadCert(certFile string, keyFile string) (tls.Certificate, error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return cert, err
-	}
-	return cert, nil
-}
-
-func loadCACert(caFile string) (*x509.CertPool, error) {
-	caCert, err := tls.LoadX509KeyPair(caFile, caFile)
-	if err != nil {
-		return nil, err
-	}
-
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert.Certificate[0])
-
-	return caCertPool, nil
 }
 
 // Service is the main entry point for the service
@@ -86,7 +63,10 @@ func Start(args []string) {
 
 	//e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 	//	Format: "${time_rfc3339} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n"}))
-	e.Logger.SetHeader("${time_rfc3339} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${time_rfc3339} ${id} ${remote_ip} method=${method} uri=${uri} status=${status} error=${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n",
+	}))
+	e.Logger.SetHeader("${time_rfc3339_nano} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
 
 	e.Use(middleware.Recover())
 	e.GET(healthcheck, healthCheck)
@@ -120,7 +100,8 @@ func Start(args []string) {
 
 	e = webserve.ServeEmbeddedErrorFiles(e)
 	e = webserve.ServeErrorTemplate(e)
-	e = webserve.ServeEmbedded(e)
+	e = webserve.ServeFavIcons(e)
+	e = webserve.ServeStaticFiles(e)
 	e = webserve.ServeRenderTemplate(e)
 
 	e.HTTPErrorHandler = webserve.CustomHTTPErrorHandler
@@ -129,14 +110,17 @@ func Start(args []string) {
 
 	useCache := config.GetConfiguration().UseRedis
 	if useCache {
-		log.Print("Using Redis cache")
+		util.LogDebug("[service] Using Redis cache")
 		cache.CreateInstances()
 	}
 	var err error
 
-	log.Printf("[service] Binding to: %v port %v; using SSL: %v", bind_host, bind_port, use_ssl)
-	if use_ssl {
+	log.Printf("[service] Binding to: %v port %v; using SSL: %v", bind_host, bind_port, UseSSL)
+	if UseSSL {
+		util.LogDebug("[service] Using SSL")
+		util.LogDebug("[service] Certifcate: %v; Key: %v", ssl_cert, ssl_key)
 		err = e.StartTLS(bind_host+":"+bind_port, ssl_cert, ssl_key)
+
 	} else {
 		err = e.Start(bind_host + ":" + bind_port)
 	}
@@ -147,6 +131,7 @@ func Start(args []string) {
 // Health Check API
 // Returns a simple string to indicate that the service is available
 func healthCheck(c echo.Context) error {
+	util.LogDebug("[service] Responding to health check request\n")
 	return c.String(http.StatusOK, "Service is available.")
 }
 
@@ -180,7 +165,8 @@ func ip2Results(c echo.Context) error {
 // Static file handler for the IP2Location GeoMap
 // Returns the HTML file for the GeoMap page
 func ip2GeoMap(c echo.Context) error {
-	return c.File("index.html")
+	util.LogDebug("[service] Received request for ip2geomap\n")
+	return c.File("ip2geomap.html")
 }
 
 // Responds to requests from the static geomap page

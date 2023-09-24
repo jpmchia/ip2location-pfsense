@@ -27,8 +27,14 @@ function check_api($healthUrl)
 	curl_setopt_array($ch, $optArray);
 
 	if(!$result = curl_exec($ch)) {
+		// $error = curl_errno($req);
+		// if ($error == CURLE_SSL_PEER_CERTIFICATE || $error == CURLE_SSL_CACERT || $error == 77) {
+		// 	curl_setopt($req, CURLOPT_CAINFO, __DIR__ . '/cert-bundle.crt');
+		// 	$result = curl_exec($req);
+		// }
 		trigger_error(curl_error($ch));
 	}
+
 	curl_close($ch);
 
 	log_error("IP2Location API health check: " . $result);
@@ -267,7 +273,7 @@ if ($health == "false") {
 	$ip2l_display_status = sprintf("Filter log entries: %d\n", $ip2l_max_entries);
 
 	$ip_log_items = extract_ip_entries($filter_log, $ip2l_log_seconds, $ip2l_filterlog_time);
-	$ip2l_display_status = sprintf(" <b>%s</b> Displaying location of %d IP addresses filtered in the last %d seconds.\n", date("H:i:s", $ip2l_filterlog_time), count($ip_log_items), $ip2l_log_seconds);
+	$ip2l_display_status = sprintf(" <b>%s</b>&nbsp;&nbsp; Displaying location of %d IP addresses filtered in the last %d seconds.\n", date("H:i:s", $ip2l_filterlog_time), count($ip_log_items), $ip2l_log_seconds);
 
 	$ip2l_submit_url = create_url($ip2l_api_hostport, $ip2l_submit_api);
 	$ip2l_results_url = create_url($ip2l_api_hostport, $ip2l_results_api);

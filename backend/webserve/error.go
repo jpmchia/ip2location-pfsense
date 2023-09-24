@@ -4,6 +4,7 @@ import (
 	"embed"
 	"html/template"
 	"io/fs"
+	"log"
 	"net/http"
 
 	"github.com/jpmchia/ip2location-pfsense/backend/util"
@@ -34,7 +35,7 @@ func ServeErrorTemplate(e *echo.Echo) *echo.Echo {
 	t := &TemplateRenderer{
 		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
 	}
-	util.LogDebug("Template: %v", t)
+	util.LogDebug("[webserve] Error template: %v", t.templates.Name())
 	e.Renderer = t
 	return e
 }
@@ -50,7 +51,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		details := err.(*echo.HTTPError)
 
-		switch code := details.Code; code {
+		switch code = details.Code; code {
 		case http.StatusNotFound:
 			message = "Page not found"
 		case http.StatusInternalServerError:
@@ -62,16 +63,15 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 		default:
 			message = details.Message.(string)
 		}
-		util.LogDebug("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
+		log.Printf("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
 	}
 
-	// LogDebug("CustomHTTPErrorHandler: %d:%v", details.Code, details.Message)
 	t := &TemplateRenderer{
 		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
 	}
 
 	c.Echo().Renderer = t
-	util.LogDebug("CustomHTTPErrorHandler: Rendering template with code %d and message %s", code, message)
+	log.Printf("CustomHTTPErrorHandler: Rendering template with code %d and message %s", code, message)
 	err = c.Render(http.StatusOK, "error.html.tmpl", map[string]interface{}{
 		"code":    code,
 		"message": message,
