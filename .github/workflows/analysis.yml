@@ -1,4 +1,4 @@
-name: code-analysis
+name: Code analysis
 on: [push, pull_request]
 defaults:
   run:

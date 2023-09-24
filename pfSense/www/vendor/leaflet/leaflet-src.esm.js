@@ -1,9 +1,9 @@
 /* @preserve
- * Leaflet 1.9.2+main.6ee30226, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 1.9.2+main.9c9e54e, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2023 Volodymyr Agafonkin, (c) 2010-2011 CloudMade
  */
 
-var version = "1.9.2+main.6ee30226";
+var version = "1.9.2+main.9c9e54e0";
 
 /*
  * @namespace Util

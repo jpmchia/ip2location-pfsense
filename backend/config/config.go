@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/spf13/viper"
 )
@@ -31,7 +31,7 @@ type Provider interface {
 
 var Config Options
 
-const appName string = "IP2Location-pfSense"
+const appName string = "github.com/jpmchia/ip2location-pfsense/backend"
 
 var CfgFile string = "config.yaml"
 var defaultConfig *viper.Viper
@@ -41,36 +41,54 @@ func init() {
 
 	util.LogDebug("Initialising configuration")
 
-	_, err := LoadConfiguration()
-	util.HandleFatalError(err, "Unable to unmarshal configuration:\n")
+	Configure()
+}
+
+func Configure() {
+	// Load the default configuration
+	defaultConfig = initViperConfig(appName)
+
+	// Set and load additional configuration locations
+	setConfigLocations(CfgFile)
+
+	// Read the configuration file
+	err := defaultConfig.ReadInConfig()
+	util.HandleError(err, "Unable to read configuration:\n")
+
+	// Unmarshal the configuration into the Config struct
+	err = defaultConfig.Unmarshal(&Config)
+	util.HandleError(err, "Unable to unmarshal configuration:\n")
 }
 
 // Config returns a default config provider
-func ConfigProvider() Provider {
-	return defaultConfig
-}
-func GetConfig() *viper.Viper {
+func ConfigProvider() *viper.Viper {
 	return defaultConfig
 }
 
-func LoadConfiguration() (Options, error) {
-
-	defaultConfig = initViperConfig(appName)
-
-	setConfigLocations(CfgFile)
-
-	err := defaultConfig.ReadInConfig()
-	util.HandleFatalError(err, "Unable to read configuration:\n")
-
-	err = defaultConfig.Unmarshal(&Config)
-	util.HandleFatalError(err, "Unable to unmarshal configuration:\n")
-	return Config, err
+func GetConfiguration() Options {
+	err := defaultConfig.Unmarshal(&Config)
+	util.HandleError(err, "Unable to unmarshal configuration:\n")
+	return Config
 }
+
+// func LoadConfiguration() (Options, error) {
+// 	defaultConfig = initViperConfig(appName)
+// 	setConfigLocations(CfgFile)
+// 	err := defaultConfig.ReadInConfig()
+// 	if err != nil {
+// 		util.HandleError(err, "Unable to read configuration:\n")
+// 		return Config, err
+// 	}
+// 	util.LogDebug("Using configuration file: %s", defaultConfig.ConfigFileUsed())
+// 	err = defaultConfig.Unmarshal(&Config)
+// 	util.HandleError(err, "Unable to unmarshal configuration:\n")
+// 	return Config, err
+// }
 
 // LoadConfigProvider returns a configured viper instance
-func LoadConfigProvider(appName string) Provider {
-	return initViperConfig(appName)
-}
+// func LoadConfigProvider(appName string) Provider {
+// 	return initViperConfig(appName)
+// }
 
 func SetValue(key string, value interface{}) {
 	defaultConfig.Set(key, value)
@@ -79,7 +97,8 @@ func SetValue(key string, value interface{}) {
 // SetConfigFile sets the config file to use and reloads the configuraton
 func SetConfigFile(file string) {
 	setConfigLocations(file)
-
+	err := defaultConfig.ReadInConfig()
+	util.HandleError(err, "Unable to read configuration:\n")
 }
 
 // Initialises viper with default values
@@ -128,14 +147,14 @@ func initViperConfig(appName string) *viper.Viper {
 
 // SetConfigLocations sets the locations to search for the configuration file
 func setConfigLocations(file string) {
-	util.LogDebug("Setting config locations")
+	util.LogDebug("[config] Setting config locations")
 	CfgFile = file
 	// Use config file from the flag.
 	defaultConfig.SetConfigType("yaml")
 	defaultConfig.SetConfigFile(CfgFile)
+	defaultConfig.AddConfigPath("./")
 	defaultConfig.AddConfigPath(fmt.Sprintf("/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/%s", appName))
-	defaultConfig.AddConfigPath(fmt.Sprintf("/usr/local/etc/%s", appName))
 	defaultConfig.AddConfigPath(fmt.Sprintf("/opt/%s", appName))
 	home, err := os.UserHomeDir()
 	util.HandleError(err, "Unable to determine user's home directory")

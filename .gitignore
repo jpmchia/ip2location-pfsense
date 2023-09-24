@@ -26,6 +26,22 @@ WIP
 go.work
 backend/ip2location-pfsense
 
+# Local configuration files
+config.yaml
+counter.yaml
+
+# Local development files
+WIP/
+contrib/ssl/*.conf
+contrib/ssl/*.key
+contrib/ssl/*.pem
+contrib/ssl/*.csr
+local/
+```
+contrib/ssl/localhost.crt
+contrib/ssl/localCA.srl
+contrib/ssl/localCA.conf
+
 # Logs
 logs
 *.log

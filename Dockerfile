@@ -1,10 +1,10 @@
 # Build Stage
-FROM golang:alpine:1.13 AS build-stage
+FROM golang:1.21.1-alpine3.18 AS build-stage
 
 LABEL app="build-ip2location-pfsense"
 LABEL REPO="https://github.com/jpmchia/IP2Location-pfSense"
 
-ENV PROJPATH=/go/src/github.com/jpmchia/IP2Location-pfSense
+ENV PROJPATH=/go/src/github.com/jpmchia/IP2Location-pfSense/backend
 
 # Because of https://github.com/docker/docker/issues/14914
 ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
@@ -12,10 +12,25 @@ ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 ADD . /go/src/github.com/jpmchia/IP2Location-pfSense
 WORKDIR /go/src/github.com/jpmchia/IP2Location-pfSense
 
+RUN apk add --no-cache --update curl \
+    dumb-init \
+    bash \
+    grep \
+    sed \
+    jq \
+    ca-certificates \
+    openssl \
+    git \
+    make \
+    gcc \
+    musl-dev \
+    && rm -rf /var/cache/apk/*
+
+
 RUN make build-alpine
 
 # Final Stage
-FROM jpmchia/alpine.base:latest
+FROM jpmchia/alpine-base:latest
 
 ARG GIT_COMMIT
 ARG VERSION

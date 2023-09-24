@@ -2,14 +2,15 @@ package service
 
 import (
 	"errors"
-	"ip2location-pfsense/cache"
-	"ip2location-pfsense/config"
-	"ip2location-pfsense/pfsense"
-	"ip2location-pfsense/util"
-	"ip2location-pfsense/webserve"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/jpmchia/ip2location-pfsense/backend/cache"
+	"github.com/jpmchia/ip2location-pfsense/backend/config"
+	"github.com/jpmchia/ip2location-pfsense/backend/pfsense"
+	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/backend/webserve"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -17,9 +18,6 @@ import (
 
 var bind_host string
 var bind_port string
-var ssl_cert string
-var ssl_key string
-var use_ssl bool
 var ingest_logs string
 var ip_requests string
 var ip2l_results string
@@ -29,23 +27,28 @@ var healthcheck string
 // var valid_api_keys map[string]string
 
 func init() {
-	config.LoadConfigProvider("IP2Location-pfSense")
-	bind_host = config.GetConfig().GetString("service.bind_host")
-	bind_port = config.GetConfig().GetString("service.bind_port")
-	use_ssl = config.GetConfig().GetBool("service.use_ssl")
-	ssl_cert = config.GetConfig().GetString("service.ssl_cert")
-	ssl_key = config.GetConfig().GetString("service.ssl_key")
+
+	config.Configure()
+
+	conf := config.GetConfiguration().Service
+
+	bind_host = conf.BindHost
+	bind_port = conf.BindPort
+
+	UseSSL = conf.UseSSL
+	ssl_cert = conf.SSLCert
+	ssl_key = conf.SSLKey
 
 	util.LogDebug("Initialising service and binding on %v:%v", bind_host, bind_port)
-	ingest_logs = config.GetConfig().GetString("service.ingest_logs")
+	ingest_logs = conf.IngestLogs
 	util.LogDebug("Ingest logs: %v", ingest_logs)
-	ip_requests = config.GetConfig().GetString("service.ip_requests")
+	ip_requests = conf.IPRequests
 	util.LogDebug("IP requests: %v", ip_requests)
-	ip2l_results = config.GetConfig().GetString("service.ip2l_results")
+	ip2l_results = conf.Results
 	util.LogDebug("IP2Location results: %v", ip2l_results)
-	ip2geomap = config.GetConfig().GetString("service.ip2geomap")
+	ip2geomap = conf.DetailPage
 	util.LogDebug("IP2Location GeoMap: %v", ip2geomap)
-	healthcheck = config.GetConfig().GetString("service.healthcheck")
+	healthcheck = conf.HealthCheck
 	util.LogDebug("Health check: %v", healthcheck)
 }
 
@@ -60,7 +63,10 @@ func Start(args []string) {
 
 	//e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 	//	Format: "${time_rfc3339} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n"}))
-	e.Logger.SetHeader("${time_rfc3339} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${time_rfc3339} ${id} ${remote_ip} method=${method} uri=${uri} status=${status} error=${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n",
+	}))
+	e.Logger.SetHeader("${time_rfc3339_nano} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
 
 	e.Use(middleware.Recover())
 	e.GET(healthcheck, healthCheck)
@@ -80,7 +86,7 @@ func Start(args []string) {
 				util.LogDebug("[service] Missing API key")
 				return false, errors.New("missing api key")
 			}
-			valid_api_keys := config.GetConfig().GetStringSlice("apikeys")
+			valid_api_keys := config.ConfigProvider().GetStringSlice("apikeys")
 			for _, valid_key := range valid_api_keys {
 				if key == valid_key {
 					util.LogDebug("[service] Valid API key recieved.")
@@ -94,23 +100,27 @@ func Start(args []string) {
 
 	e = webserve.ServeEmbeddedErrorFiles(e)
 	e = webserve.ServeErrorTemplate(e)
-	e = webserve.ServeEmbedded(e)
+	e = webserve.ServeFavIcons(e)
+	e = webserve.ServeStaticFiles(e)
 	e = webserve.ServeRenderTemplate(e)
 
 	e.HTTPErrorHandler = webserve.CustomHTTPErrorHandler
 
 	util.LogDebug("[service] Service called with: %s", strings.Join(args, " "))
 
-	useCache := config.GetConfig().GetBool("use_cache")
+	useCache := config.GetConfiguration().UseRedis
 	if useCache {
-		log.Print("Using Redis cache")
+		util.LogDebug("[service] Using Redis cache")
 		cache.CreateInstances()
 	}
 	var err error
 
-	log.Printf("[service] Binding to: %v port %v; using SSL: %v", bind_host, bind_port, use_ssl)
-	if use_ssl {
+	log.Printf("[service] Binding to: %v port %v; using SSL: %v", bind_host, bind_port, UseSSL)
+	if UseSSL {
+		util.LogDebug("[service] Using SSL")
+		util.LogDebug("[service] Certifcate: %v; Key: %v", ssl_cert, ssl_key)
 		err = e.StartTLS(bind_host+":"+bind_port, ssl_cert, ssl_key)
+
 	} else {
 		err = e.Start(bind_host + ":" + bind_port)
 	}
@@ -121,6 +131,7 @@ func Start(args []string) {
 // Health Check API
 // Returns a simple string to indicate that the service is available
 func healthCheck(c echo.Context) error {
+	util.LogDebug("[service] Responding to health check request\n")
 	return c.String(http.StatusOK, "Service is available.")
 }
 
@@ -154,7 +165,8 @@ func ip2Results(c echo.Context) error {
 // Static file handler for the IP2Location GeoMap
 // Returns the HTML file for the GeoMap page
 func ip2GeoMap(c echo.Context) error {
-	return c.File("index.html")
+	util.LogDebug("[service] Received request for ip2geomap\n")
+	return c.File("ip2geomap.html")
 }
 
 // Responds to requests from the static geomap page

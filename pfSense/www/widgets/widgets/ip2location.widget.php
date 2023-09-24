@@ -8,12 +8,13 @@ require_once("pfsense-utils.inc");
 require_once("functions.inc");
 require_once("syslog.inc");
 
-global $ip2l_results, $ip2l_display_status;
+global $ip2l_results, $ip2l_display_status, $ip2l_filterlog_time;
 
 function create_url($hostport, $path) {
     $url = $hostport . $path;
 	return $url;
 }
+
 
 
 function check_api($healthUrl)
@@ -27,8 +28,14 @@ function check_api($healthUrl)
 	curl_setopt_array($ch, $optArray);
 
 	if(!$result = curl_exec($ch)) {
+		// $error = curl_errno($req);
+		// if ($error == CURLE_SSL_PEER_CERTIFICATE || $error == CURLE_SSL_CACERT || $error == 77) {
+		// 	curl_setopt($req, CURLOPT_CAINFO, __DIR__ . '/cert-bundle.crt');
+		// 	$result = curl_exec($req);
+		// }
 		trigger_error(curl_error($ch));
 	}
+
 	curl_close($ch);
 
 	log_error("IP2Location API health check: " . $result);
@@ -43,10 +50,12 @@ function check_api($healthUrl)
 }
 
 
-function extract_ip_entries($logarr, $seconds)
+
+
+function extract_ip_entries($logarr, $seconds, $filterlog_time)
 {
 	$ip2l_display_status = sprintf("Extracting the last %s seconds of log entries.<br/>", $seconds);
-	$timeCap = time() - $seconds;
+	$timeCap = $filterlog_time - $seconds;
 	$loggedIps = [];
 	$count = 0;
 	foreach ($logarr as $entry) {
@@ -73,9 +82,11 @@ function extract_ip_entries($logarr, $seconds)
 }
 
 
+
 function truncate($string, $length) {
     return (strlen($string) > $length) ? substr($string, 0, $length) : $string;
 }
+
 
 
 function send_filterlog($ip_log, $url, $key) {
@@ -108,6 +119,7 @@ function send_filterlog($ip_log, $url, $key) {
 }
 
 
+
 function get_results($resultsid, $url, $key)
 {
 	$ip2l_display_status = sprintf("Fething resutls from API for %s.\n", $resultsid);
@@ -125,7 +137,6 @@ function get_results($resultsid, $url, $key)
 		CURLOPT_RETURNTRANSFER => true,
 		CURLOPT_HTTPGET => 1,
 		CURLOPT_HTTPHEADER => ['Content-Type: application/json', $authorization ],
-		// CURLOPT_POSTFIELDS => $resultsId
 	);
 	curl_setopt_array($ch, $optArray);
 
@@ -253,6 +264,8 @@ $ip2l_health = isset($user_settings['widgets'][$widgetkey]['ip2l_health']) ? $us
 $ip2l_details_page = isset($user_settings['widgets'][$widgetkey]['ip2l_details_page']) ? $user_settings['widgets'][$widgetkey]['ip2l_details_page'] : "/index.html";
 $ip2l_token = isset($user_settings['widgets'][$widgetkey]['ip2l_token']) ? $user_settings['widgets'][$widgetkey]['ip2l_token'] : 'valid-key';
 
+$ip2l_filterlog_time = time();
+
 $filter_logfile = "{$g['varlog_path']}/filter.log";
 $widgetkey_nodash = str_replace("-", "", $widgetkey);
 $health = check_api(create_url($ip2l_api_hostport, $ip2l_health));
@@ -264,8 +277,8 @@ if ($health == "false") {
 	$filter_log = conv_log_filter($filter_logfile, $ip2l_max_entries, 5000, $ip2l_fields_array);
 	$ip2l_display_status = sprintf("Filter log entries: %d\n", $ip2l_max_entries);
 
-	$ip_log_items = extract_ip_entries($filter_log, $ip2l_log_seconds);
-	$ip2l_display_status = sprintf(" Displaying location of %d IP addresses, from the last 30% seconds of log items.\n", count($ip_log_items), $ip2l_log_seconds);
+	$ip_log_items = extract_ip_entries($filter_log, $ip2l_log_seconds, $ip2l_filterlog_time);
+	$ip2l_display_status = sprintf(" <b>%s</b>&nbsp;&nbsp; Displaying location of %d IP addresses filtered in the last %d seconds.\n", date("H:i:s", $ip2l_filterlog_time), count($ip_log_items), $ip2l_log_seconds);
 
 	$ip2l_submit_url = create_url($ip2l_api_hostport, $ip2l_submit_api);
 	$ip2l_results_url = create_url($ip2l_api_hostport, $ip2l_results_api);
@@ -279,7 +292,6 @@ if (!$_REQUEST['ajax']) {
 <script type="text/javascript">
 //<![CDATA[
 	var ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = <?=time()?>;
-	console.log("Non-AJAX call for IP2Location widget (<?=htmlspecialchars($widgetkey)?>)");
 	console.log("ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = " + ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>);
 //]]>
 </script>
@@ -302,7 +314,7 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 ?>
 
 <!-- This is the body of the widget and will be AJAX-refreshed -->
-<link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
+<link rel="stylesheet" href="/widgets/widgets/ip2location.widget.css"/>
 <script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
 <script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
 
@@ -336,7 +348,7 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 		localStorage.setItem("coords_x", map.getCenter().lat);
 		localStorage.setItem("coords_y", map.getCenter().lng);
 		localStorage.setItem("zoom", map.getZoom());
-		console.log("Map moved to " + map.getCenter().lat + ", " + map.getCenter().lng + " at zoom level " + map.getZoom());
+		console.log("Map moved to " + map.getCenter().lat + ", " + map.getCenter().lng + " at zoom level " + map.getZoom() + ". New view saved to localStorage.");
 	}
 
 	map.on('zoomend', onMapMove);
@@ -360,7 +372,6 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 			widgetkey: <?=json_encode($widgetkey)?>,
 			lastsawtime: ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>,
 		};
-		console.log("postdata = " + JSON.stringify(postdata));
 
 		// Create an object defining the widget refresh AJAX call
 		var ip2lObject = new Object();
@@ -441,9 +452,9 @@ $pconfig['ip2l_token'] = isset($user_settings['widgets'][$widgetkey]['ip2l_token
 		</div>
 	</div>		
 	<div class="form-group" id="ip2l">
-		<label for="ip2l_token" class="col-sm-4 control-label"><?=gettext('IP2Location daemon API token ')?></label>
+		<label for="ip2l_token" class="col-sm-4 control-label"><?=gettext('Backend service token ')?></label>
 		<div class="col-sm-4">
-			<input type="text" name="ip2l_token" id="ip2l_token" value="<?=$pconfig['ip2l_token']?>" placeholder="[API Bearer token]" class="form-control" />
+			<input type="text" name="ip2l_token" id="ip2l_token" value="<?=$pconfig['ip2l_token']?>" placeholder="[Bearer token]" class="form-control" />
 		</div>
 	</div>
 
