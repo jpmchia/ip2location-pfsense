@@ -28,7 +28,9 @@ The dashboard widget and backend service are designed for use with the IP2Locati
 * Additional UI for cache controls, monitoring and hit rates and configuration of the backend
 * Transfer storage of Watch list from the local browser storage to the backend service 
 
-<img src="https://github.com/jpmchia/IP2Location-pfSense/blob/main/contrib/screenshots/screenshot1.png" width="720">
+
+<img src="https://github.com/jpmchia/IP2Location-pfSense/blob/e1156d594e6e0e71c3cab91124f874811b4b3029/contrib/screenshots/Screenshot1.png?raw=true" width="95%">
+
 
 ## Getting started
 
@@ -55,7 +57,9 @@ The dashboard widget targets and has been tested on pfSense+ version 23.0.5.1. I
 
 Once the files have been copied, the widget can be added to the dashboard by navigating to the pfSense dashboard, expanding the "Available Widgets" panel and then selecting the 'IP2Location' widget. If the "Available Widgets" panel is not visible, navigate to System -> General Setup -> webConfigurator -> Associated Panels Show/Hide and ensure that the checkbox for "Available Widgets" is checked. 
 
-<img src="https://github.com/jpmchia/IP2Location-pfSense/blob/main/contrib/screenshots/screenshot2.png" width="720">
+
+<img src="https://github.com/jpmchia/IP2Location-pfSense/blob/e1156d594e6e0e71c3cab91124f874811b4b3029/contrib/screenshots/Screenshot2.png?raw=true" width="95%">
+
 
 ## Configuration
 
