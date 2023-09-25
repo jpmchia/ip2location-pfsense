@@ -315,7 +315,7 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 <link rel="stylesheet" href="/widgets/widgets/ip2location.widget.css"/>
 <script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
 <script src="/vendor/leaflet-providers/leaflet-providers.js?v=<?=filemtime('/usr/local/www//vendor/leaflet-providers/leaflet-providers.js')?>"></script>
-<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www//vendor/winbox/js/winbox.min.js')?>" async></script>
+<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www//vendor/winbox/js/winbox.min.js')?>"></script>
 <script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
 
 <div id="<?=$widgetkey?>-map">
@@ -348,7 +348,9 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	var coords_y = localStorage.getItem("coords_y") ?? <?=isset($coords_y) ? htmlspecialchars($coords_y) : -0.09?>;
 	var zoom = localStorage.getItem("zoom") ?? <?=isset($zoom) ? htmlspecialchars($zoom) : 13?>;
 	var apiUrl = <?=json_encode($ip2l_api_hostport)?>;
-
+	var widgetkey = <?=json_encode($widgetkey)?>;
+	var winboxIp2LDetails;
+	
 	if (coords_x != null && coords_y != null && zoom != null) {
 		map_coords = [coords_x, coords_y];
 		map_zoom = zoom;
@@ -391,9 +393,6 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 
 	recreateIp2LDetailsTable();
 
-	function openIpLDetailsWindow() {
-
-	}
 //]]>
 </script>
 

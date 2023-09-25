@@ -1,4 +1,5 @@
 
+
 L.Control.Watermark = L.Control.extend({
     onAdd: function(map) {
         var img = L.DomUtil.create('img');
@@ -302,7 +303,7 @@ function createTableRow(item) {
     <td>${item.interface}</td>
     <td>${item_ip}</td>
     <td id="ip2l_status">${item.hitcount}</td>
-    <td id="ip2l_action_detail"><i class="fa fa-chevron-right" style="cursor: pointer;" onclick="javascript:openDetailsWindow('${item_ip}');" title="View details."></td>
+    <td id="ip2l_action_detail"><i class="fa fa-chevron-right" style="cursor: pointer;" onclick="javascript:showIP2LDetail('${item_ip}');" title="View details."></td>
     <td id="ip2l_action_remove"><i class="fa fa-times text-danger" style="cursor: pointer;" onclick="javascript:removeItem('${item_ip}');" title="Remove from watch list."></td>
     `
     //var row = `<tr><td>${act_icon}</td><td>${item.time}</td><td>${item.interface}</td><td>${item.srcip}</td><td>${item.dstip}</td></tr><tr><td>${item.direction}</td><td>${item.proto}</td><td>${item.city_name}, ${item.country_name}</td><td>${item.As}, ${item.Asn}</td></tr>`;
@@ -322,7 +323,7 @@ function removeItem(item_ip)
         if (key == item_ip) {
             delete existngItems[key];
             window.localStorage.setItem("ip2ldetails", JSON.stringify(existngItems));
-            console.log("Item removed from local storage: " + JSON.stringify(existngItems));
+            console.log("Item removed from local storage: " +  item_ip); // JSON.stringify(existngItems));
             recreateIp2LDetailsTable();
             return;
         }
@@ -341,7 +342,7 @@ function saveItemToLocalStorage(item) {
         item_ip = item.dstip}};
     existngItems[item_ip] = item;
     window.localStorage.setItem("ip2ldetails", JSON.stringify(existngItems));
-    console.log("Item saved to local storage: " + JSON.stringify(existngItems));
+    console.log("Item saved to local storage: " + item_ip ); // JSON.stringify(existngItems));
 }
 
 function addIp2LDetails(item) {
@@ -434,3 +435,14 @@ function getIp2LDetails(item) {
     span.setAttribute("style", "display: block; visibility: visible;");    
 }
 
+function showIP2LDetail(item_ip) {
+    window.winboxIp2LDetails = new WinBox('IP2Location details', {
+        root: document.querySelector(widgetkey),
+        top: 60,
+        right: 5,
+        bottom: 15,
+        left: 5,
+        url: 
+    });
+    console.log("showIP2LDetail: " + item_ip);
+}
