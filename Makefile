@@ -3,7 +3,7 @@
 
 BIN_NAME=ip2location-pfsense
 
-VERSION := $(shell grep "const Version " version/version.go | sed -E 's/.*"(.+)"$$/\1/')
+VERSION := $(shell grep "const Version " backend/version/version.go | sed -E 's/.*"(.+)"$$/\1/')
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 BUILD_DATE=$(shell date '+%Y-%m-%d-%H:%M:%S')
@@ -28,7 +28,7 @@ help:
 build:
 	@echo "building ${BIN_NAME} ${VERSION}"
 	@echo "GOPATH=${GOPATH}"
-	go build -C ./backend/ -ldflags "-X github.com/jpmchia/IP2Location-pfSense/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/jpmchia/IP2Location-pfSense/version.BuildDate=${BUILD_DATE}" -o bin/${BIN_NAME}
+	go build -C ./backend -ldflags "-X github.com/jpmchia/IP2Location-pfSense/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/jpmchia/IP2Location-pfSense/version.BuildDate=${BUILD_DATE}" -o bin/${BIN_NAME}
 
 get-deps:
 	dep ensure
@@ -36,7 +36,7 @@ get-deps:
 build-alpine:
 	@echo "building ${BIN_NAME} ${VERSION}"
 	@echo "GOPATH=${GOPATH}"
-	go build -C ./backend/ -ldflags '-w -linkmode external -extldflags "-static" -X github.com/jpmchia/IP2Location-pfSense/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/jpmchia/IP2Location-pfSense/version.BuildDate=${BUILD_DATE}' -o bin/${BIN_NAME}
+	go build -C ./backend -ldflags '-w -linkmode external -extldflags "-static" -X github.com/jpmchia/IP2Location-pfSense/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/jpmchia/IP2Location-pfSense/version.BuildDate=${BUILD_DATE}' -o bin/${BIN_NAME}
 
 package:
 	@echo "building image ${BIN_NAME} ${VERSION} $(GIT_COMMIT)"
@@ -58,5 +58,5 @@ clean:
 	@test ! -e bin/${BIN_NAME} || rm bin/${BIN_NAME}
 
 test:
-	go test ./...
+	go test -C ./backend ./...
 

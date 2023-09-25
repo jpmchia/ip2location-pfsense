@@ -24,7 +24,11 @@ var ip2l_results string
 var ip2geomap string
 var healthcheck string
 
-var definedPaths = []string{ingest_logs, ip_requests, ip2l_results, ip2geomap, healthcheck, "/static", "/favicon.ico"}
+var ssl_cert string
+var ssl_key string
+var UseSSL bool
+
+//var definedPaths = []string{ingest_logs, ip_requests, ip2l_results, ip2geomap, healthcheck, "/static", "/favicon.ico"}
 
 // var valid_api_keys map[string]string
 
