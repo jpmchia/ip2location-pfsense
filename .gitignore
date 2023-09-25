@@ -180,3 +180,4 @@ contrib/ssl/*.crt
 contrib/ssl/*.csr
 
 web/.yarn-integrity
+backend/backend

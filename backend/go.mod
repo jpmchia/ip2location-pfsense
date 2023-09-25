@@ -49,4 +49,3 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/jpmchia/ip2location-pfsense/backend v0.0.0-unpublished => ../../IP2Location-pfSense/backend
