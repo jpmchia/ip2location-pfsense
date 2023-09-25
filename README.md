@@ -68,11 +68,7 @@ You may limit the number of log entries processed by the widget/backend service 
 
 Finally, the frequency of updates can be configured. The default is 15 seconds. This value specifies the number of seconds between the widget sending a request to the backend service for updated geolocation information and the widget updating the dashboard with the response.
 
-```
-
-
 Refer to docs/CONFIGURATION.md for configuration options. To generate a sample configuration file as a starting point run:
-
 ```
 ./bin/ip2location-pfsense config create
 ```
@@ -81,7 +77,6 @@ Refer to docs/CONFIGURATION.md for configuration options. To generate a sample c
 
 The service can be run as a standalone binary, or as a Docker container. Having a Redis instance running is a prerequisite for both options. To run a new Redis instance as a Docker container, refer the sample script provided: 
 scripts start_redis.sh 
-
 ```
 ./bin/ip2location-pfsense service
 ```
@@ -89,7 +84,6 @@ scripts start_redis.sh
 ### Standalone binary
 
 To run the service as a standalone binary, run the following command:
-
 ```
 ./bin/ip2location-pfsense service
 ```
@@ -97,13 +91,12 @@ To run the service as a standalone binary, run the following command:
 ### Docker (WIP)
 
 For convenience, a WIP Dockerfile is provided. To build the Docker image, run:
-
 ```
 docker build -t ip2location-pfsense .
 ```
 
 To run the Docker image, command:
-
 ```
 docker run -d --name ip2location-pfsense ip2location-pfsense
 ```
+
