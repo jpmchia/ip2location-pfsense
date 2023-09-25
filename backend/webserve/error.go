@@ -3,6 +3,7 @@ package webserve
 import (
 	"embed"
 	"html/template"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -14,6 +15,20 @@ import (
 
 //go:embed error/*
 var errorFiles embed.FS
+
+type TemplateRenderer struct {
+	templates *template.Template
+}
+
+// Render implements echo.Renderer.
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+
+	if viewContext, isMap := data.(map[string]interface{}); isMap {
+		viewContext["reverse"] = c.Echo().Reverse
+	}
+
+	return t.templates.ExecuteTemplate(w, name, data)
+}
 
 // Gets the embedded file system
 func getErrorFileSystem() http.FileSystem {

@@ -4,9 +4,9 @@
   "description": "IP2Location backend service and widget for pfSense",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
-    "start": "webpack serve",
-    "package": "webpack && cp ./dist/* ../backend/webserve/static/"
+    "build": "webpack --config ./src/webpack.dev.js",
+    "start": "webpack serve --config ./src/webpack.dev.js",
+    "dev": "webpack serve --config ./src/webpack.dev.js"
   },
   "repository": "https://github.com/jpmchia/IP2Location-pfSense",
   "author": "jpmchia@gmail.com",
@@ -19,10 +19,12 @@
     "typescript": "^5.2.2",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.9.0"
   },
   "dependencies": {
     "@types/lodash": "^4.14.198",
+    "install": "^0.13.0",
     "lodash": "^4.17.21"
   }
 }

@@ -118,8 +118,6 @@ function send_filterlog($ip_log, $url, $key) {
 	return $return_result;
 }
 
-
-
 function get_results($resultsid, $url, $key)
 {
 	$ip2l_display_status = sprintf("Fething resutls from API for %s.\n", $resultsid);
@@ -316,14 +314,32 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 <!-- This is the body of the widget and will be AJAX-refreshed -->
 <link rel="stylesheet" href="/widgets/widgets/ip2location.widget.css"/>
 <script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
+<script src="/vendor/leaflet-providers/leaflet-providers.js?v=<?=filemtime('/usr/local/www//vendor/leaflet-providers/leaflet-providers.js')?>"></script>
+<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www//vendor/winbox/js/winbox.min.js')?>" async></script>
 <script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
 
 <div id="<?=$widgetkey?>-map">
 	<div id="leaflet" style="height: 320px;">
 	</div>
+	<div id="progress"><div id="progress-bar"></div></div>
 	<div class="subpanel-body">
 		<span class="ip2l_status"><?=gettext($ip2l_display_status); ?></span>
 	</div>
+	<span id="ip2l-details" >
+		<table id="ip2l-table" class="table table-striped table-hover">
+			<thead>
+				<tr>
+				<td>Act</td>
+				<td>Time</td>
+				<td>IF</td>
+				<td>IP</td>
+				<td>Hits</td>
+				<td colspan="2">Actions</td>
+				<tr>
+			</thead>
+			<tbody id="ip2l-tbody"></tbody>
+		</table>
+	</span>
 </div>
 
 <script>
@@ -331,18 +347,37 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	var coords_x = localStorage.getItem("coords_x") ?? <?=isset($coords_x) ? htmlspecialchars($coords_x) : 51.505?>;
 	var coords_y = localStorage.getItem("coords_y") ?? <?=isset($coords_y) ? htmlspecialchars($coords_y) : -0.09?>;
 	var zoom = localStorage.getItem("zoom") ?? <?=isset($zoom) ? htmlspecialchars($zoom) : 13?>;
+	var apiUrl = <?=json_encode($ip2l_api_hostport)?>;
 
 	if (coords_x != null && coords_y != null && zoom != null) {
 		map_coords = [coords_x, coords_y];
 		map_zoom = zoom;
 	}
-	
-	var map = L.map('leaflet').setView(map_coords, map_zoom);
 
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    	maxZoom: 19,
-    	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-	}).addTo(map);
+	var openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                	maxZoom: 19,
+    	            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	            });
+
+	var map = L.map('leaflet', {
+                    center: map_coords,
+                    zoom: map_zoom,
+					layers: [openStreetMap]
+				});
+
+	L.control.watermark = function(opts) {
+		return new L.Control.Watermark(opts);
+	}
+
+	L.control.watermark({ position: 'bottomleft' }).addTo(map);
+
+	var allowInLayer = L.layerGroup();
+	var allowOutLayer = L.layerGroup();
+	var blockOutLayer = L.layerGroup();
+	var blockInLayer = L.layerGroup();
+
+	var progress = document.getElementById('progress');
+	var progressBar = document.getElementById('progress-bar');
 
 	function onMapMove(e) {
 		localStorage.setItem("coords_x", map.getCenter().lat);
@@ -353,6 +388,12 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 
 	map.on('zoomend', onMapMove);
 	map.on('moveend', onMapMove);
+
+	recreateIp2LDetailsTable();
+
+	function openIpLDetailsWindow() {
+
+	}
 //]]>
 </script>
 

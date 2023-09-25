@@ -5,21 +5,20 @@ import (
 	"io/fs"
 	"net/http"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
 	"github.com/labstack/echo/v4"
 )
 
-//go:embed static/favicon/*
+//go:embed favicon/*
 var faviconFiles embed.FS
 
-const favIconPath = "/static/favicon"
+const favIconPath = "favicon"
 const siteManifest = "site.webmanifest"
 const favIcon = "favicon.ico"
 const favIcon16 = "favicon-16x16.png"
 const favIcon32 = "favicon-32x32.png"
 
 func embeddedFaviconHandler() http.FileSystem {
-	fsys, err := fs.Sub(faviconFiles, "static/favicon")
+	fsys, err := fs.Sub(faviconFiles, favIconPath)
 	if err != nil {
 		panic(err)
 	}
@@ -27,8 +26,6 @@ func embeddedFaviconHandler() http.FileSystem {
 }
 
 func ServeFavIcons(e *echo.Echo) *echo.Echo {
-	err := LoadTemplates()
-	util.HandleError(err, "LoadTemplates")
 	faviconFsHandler := http.FileServer(embeddedFaviconHandler())
 	e.GET(siteManifest, echo.WrapHandler(faviconFsHandler))
 	e.GET(favIcon, echo.WrapHandler(faviconFsHandler))

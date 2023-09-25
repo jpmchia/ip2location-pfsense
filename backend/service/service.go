@@ -24,6 +24,8 @@ var ip2l_results string
 var ip2geomap string
 var healthcheck string
 
+var definedPaths = []string{ingest_logs, ip_requests, ip2l_results, ip2geomap, healthcheck, "/static", "/favicon.ico"}
+
 // var valid_api_keys map[string]string
 
 func init() {
@@ -64,7 +66,7 @@ func Start(args []string) {
 	//e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 	//	Format: "${time_rfc3339} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n"}))
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${time_rfc3339} ${id} ${remote_ip} method=${method} uri=${uri} status=${status} error=${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n",
+		Format: "${time_rfc3339_nano} ${id} ${remote_ip} method=${method} uri=${uri} status=${status} error=${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n",
 	}))
 	e.Logger.SetHeader("${time_rfc3339_nano} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
 
@@ -75,6 +77,8 @@ func Start(args []string) {
 	e.GET(ip2geomap, ip2MapResults)
 	e.POST(ip_requests, ipRequest)
 	e.GET(ip2geomap, ip2GeoMap)
+
+	e = webserve.ServeEmeddedContent(e)
 
 	g := e.Group("/api")
 
@@ -101,8 +105,6 @@ func Start(args []string) {
 	e = webserve.ServeEmbeddedErrorFiles(e)
 	e = webserve.ServeErrorTemplate(e)
 	e = webserve.ServeFavIcons(e)
-	e = webserve.ServeStaticFiles(e)
-	e = webserve.ServeRenderTemplate(e)
 
 	e.HTTPErrorHandler = webserve.CustomHTTPErrorHandler
 
