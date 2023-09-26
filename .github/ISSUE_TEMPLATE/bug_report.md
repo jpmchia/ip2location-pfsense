@@ -1,9 +1,12 @@
-
 ---
 name: Bug report
-about: Create a report to help improve the project
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
 
 ---
+
 **Component**
 - [ ] Dashboard widget
 - [ ] Backend service
@@ -40,4 +43,3 @@ If applicable, add screenshots to help explain your problem.
 
 **Additional context**
 Add any other context about the problem here.
-
