@@ -416,3 +416,35 @@ a:visited {
   font-size: 1.25rem;
   font-weight: 500;
 }
+
+
+/* Inline #8 | https://192.168.0.1/ */
+
+.subpanel-body {
+  padding: 1rem;
+}
+
+/* pfSense-dark-Terra.css | https://192.168.0.1/css/pfSense-dark-Terra.css?v=1695678686 */
+
+.panel {
+  /* background-color: rgba(50,50,50,0.9); */
+  background-color: rgba(45,50,50,0.9);
+  padding-bottom: 1.25rem;
+  backdrop-filter: blur( 4px );
+  -webkit-backdrop-filter: blur( 4px );
+}
+
+a:visited {
+  /* color: darkgray; */
+  color: lightgrey;
+}
+
+.breadcrumb {
+  /* font-size: 18px; */
+  font-size: 2rem;
+}
+
+.panel-title {
+  /* font-size: 14px; */
+  font-size: 1.5rem;
+}
