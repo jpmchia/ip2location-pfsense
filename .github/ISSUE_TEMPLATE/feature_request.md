@@ -1,9 +1,12 @@
-
 ---
 name: Feature request
 about: Suggest an idea for this project
+title: ''
+labels: ''
+assignees: ''
 
 ---
+
 **Component**
 - [ ] Dashboard widget
 - [ ] Backend service
