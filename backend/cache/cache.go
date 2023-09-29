@@ -79,6 +79,12 @@ func (ri RedisInstance) Get(key string) (interface{}, error) {
 	return ri.Rh.JSONGet(key, ".")
 }
 
+// Sets a value in the Redis instance
+func (ri RedisInstance) Set(key string, value interface{}) (interface{}, error) {
+	util.LogDebug("[cache] Setting key: %v to value: %v in Redis instance: %v", key, value, ri)
+	return ri.Rh.JSONSet(key, ".", value)
+}
+
 // Sets	a value in the Redis instance
 func Set(name string, key string, value interface{}) (interface{}, error) {
 	util.LogDebug("[cache] Setting key: %v to value: %v in Redis instance: %v", key, value, name)
@@ -89,6 +95,14 @@ func Set(name string, key string, value interface{}) (interface{}, error) {
 	return ri.Rh.JSONSet(key, ".", value)
 }
 
+// Deletes a value from the Redis instance
+func (ri RedisInstance) Delete(key string) (interface{}, error) {
+	util.LogDebug("[cache] Deleting key: %v from Redis instance: %v", key, ri)
+
+	return ri.Rdb.Del(ctx, key).Result()
+}
+
+// Gets a Redis handler for the instance
 func Handler(name string) *rejson.Handler {
 	util.LogDebug("[cache] Getting Redis handler for instance: %v", name)
 	ri := instances[name]
@@ -96,4 +110,30 @@ func Handler(name string) *rejson.Handler {
 	rh.SetGoRedisClientWithContext(ctx, ri.Rdb)
 
 	return rh
+}
+
+// Gets keys from the Redis instance
+func (ri RedisInstance) Keys(pattern string) ([]string, error) {
+	util.LogDebug("[cache] Getting keys for pattern: %v from Redis instance: %v", pattern, ri)
+
+	return ri.Rdb.Keys(ctx, pattern).Result()
+}
+
+// Flushes the Redis instance
+func (ri RedisInstance) Flush() error {
+	util.LogDebug("[cache] Flushing Redis instance: %v", ri)
+
+	return ri.Rdb.FlushDB(ctx).Err()
+}
+
+// Flushes all Redis instances
+func (ri RedisInstance) FlushAll() error {
+	util.LogDebug("[cache] Flushing Redis instance: %v", ri)
+
+	return ri.Rdb.FlushAll(ctx).Err()
+}
+
+// Gets the number of keys set in the Redis instance
+func (ri RedisInstance) KeysSetCount() int {
+	return ri.KeysSet
 }

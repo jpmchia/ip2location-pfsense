@@ -12,18 +12,15 @@ type RedisCacheConfig struct {
 	Db       int    `mapstructure:"db"`
 	Auth     string `mapstructure:"auth"`
 	Pass     string `mapstructure:"pass"`
+	Type     string `mapstructure:"type"`
 }
 
 const RedisConfigKey = "redis"
 
-// const ip2LocationKey = "redis.ip2location"
-// const pfSenseKey = "redis.pfsense"
-
 var configuration *viper.Viper
 
 func LoadConfiguration(subkey string) (RedisCacheConfig, error) {
-	//_, err := config.LoadConfiguration()
-	//util.HandleFatalError(err, "[cache] Unable to load configuration")
+
 	config.Configure()
 
 	configuration = config.ConfigProvider()
@@ -48,5 +45,6 @@ func loadConfig(v *viper.Viper) (conf *RedisCacheConfig, err error) {
 		Db:       v.GetInt("db"),
 		Auth:     v.GetString("auth"),
 		Pass:     v.GetString("pass"),
+		Type:     v.GetString("type"),
 	}, err
 }

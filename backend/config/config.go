@@ -38,8 +38,7 @@ var defaultConfig *viper.Viper
 
 // Default initialiser for the applicaiton's configuration
 func init() {
-
-	util.LogDebug("Initialising configuration")
+	util.Log("[config] Initialising configuration")
 
 	Configure()
 }
@@ -53,11 +52,11 @@ func Configure() {
 
 	// Read the configuration file
 	err := defaultConfig.ReadInConfig()
-	util.HandleError(err, "Unable to read configuration:\n")
+	util.HandleError(err, "[config] Unable to read configuration:\n")
 
 	// Unmarshal the configuration into the Config struct
 	err = defaultConfig.Unmarshal(&Config)
-	util.HandleError(err, "Unable to unmarshal configuration:\n")
+	util.HandleError(err, "[config] Unable to unmarshal configuration:\n")
 }
 
 // Config returns a default config provider
@@ -67,28 +66,9 @@ func ConfigProvider() *viper.Viper {
 
 func GetConfiguration() Options {
 	err := defaultConfig.Unmarshal(&Config)
-	util.HandleError(err, "Unable to unmarshal configuration:\n")
+	util.HandleError(err, "[config] Unable to unmarshal configuration:\n")
 	return Config
 }
-
-// func LoadConfiguration() (Options, error) {
-// 	defaultConfig = initViperConfig(appName)
-// 	setConfigLocations(CfgFile)
-// 	err := defaultConfig.ReadInConfig()
-// 	if err != nil {
-// 		util.HandleError(err, "Unable to read configuration:\n")
-// 		return Config, err
-// 	}
-// 	util.LogDebug("Using configuration file: %s", defaultConfig.ConfigFileUsed())
-// 	err = defaultConfig.Unmarshal(&Config)
-// 	util.HandleError(err, "Unable to unmarshal configuration:\n")
-// 	return Config, err
-// }
-
-// LoadConfigProvider returns a configured viper instance
-// func LoadConfigProvider(appName string) Provider {
-// 	return initViperConfig(appName)
-// }
 
 func SetValue(key string, value interface{}) {
 	defaultConfig.Set(key, value)
@@ -98,7 +78,7 @@ func SetValue(key string, value interface{}) {
 func SetConfigFile(file string) {
 	setConfigLocations(file)
 	err := defaultConfig.ReadInConfig()
-	util.HandleError(err, "Unable to read configuration:\n")
+	util.HandleError(err, "[config] Unable to read configuration:\n")
 }
 
 // Initialises viper with default values
@@ -130,6 +110,7 @@ func initViperConfig(appName string) *viper.Viper {
 
 	v.SetDefault("service.bind_host", "127.0.0.1")
 	v.SetDefault("service.bind_port", "9999")
+	v.SetDefault("service.allow_hosts", "*")
 	v.SetDefault("service.use_ssl", false)
 	v.SetDefault("service.ssl_cert", "cert.pem")
 	v.SetDefault("service.ssl_key", "cert.key")

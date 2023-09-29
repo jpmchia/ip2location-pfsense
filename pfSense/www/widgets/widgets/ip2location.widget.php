@@ -200,6 +200,12 @@ if ($_REQUEST['widgetkey'] && !$_REQUEST['ajax']) {
 	} else {
 		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_api_hostport']);
 	}
+
+	if (is_string($_POST['ip2l_html_hostport'])) {
+		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_html_hostport'] = $_POST['ip2l_html_hostport'];
+	} else {
+		unset($user_settings['widgets'][$_POST['widgetkey']]['ip2l_html_hostport']);
+	}
 	
 	if (is_string($_POST['ip2l_submit_api'])) {
 		$user_settings['widgets'][$_POST['widgetkey']]['ip2l_submit_api'] = $_POST['ip2l_submit_api'];
@@ -256,6 +262,7 @@ $ip2l_fields_array = array(
 
 $ip2l_log_seconds = isset($user_settings['widgets'][$widgetkey]['ip2l_log_seconds']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_seconds'] : 30;
 $ip2l_api_hostport = isset($user_settings['widgets'][$widgetkey]['ip2l_api_hostport']) ? $user_settings['widgets'][$widgetkey]['ip2l_api_hostport'] : "http://localhost:9999";
+$ip2l_html_hostport = isset($user_settings['widgets'][$widgetkey]['ip2l_html_hostport']) ? $user_settings['widgets'][$widgetkey]['ip2l_html_hostport'] : "http://localhost:9999";
 $ip2l_submit_api = isset($user_settings['widgets'][$widgetkey]['ip2l_submit_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_submit_api'] : "/api/filterlog";
 $ip2l_results_api = isset($user_settings['widgets'][$widgetkey]['ip2l_results_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_results_api'] : "/api/results";
 $ip2l_health = isset($user_settings['widgets'][$widgetkey]['ip2l_health']) ? $user_settings['widgets'][$widgetkey]['ip2l_health'] : "/health";
@@ -315,7 +322,7 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 <link rel="stylesheet" href="/widgets/widgets/ip2location.widget.css"/>
 <script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
 <script src="/vendor/leaflet-providers/leaflet-providers.js?v=<?=filemtime('/usr/local/www//vendor/leaflet-providers/leaflet-providers.js')?>"></script>
-<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www//vendor/winbox/js/winbox.min.js')?>" async></script>
+<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www//vendor/winbox/js/winbox.min.js')?>"></script>
 <script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
 
 <div id="<?=$widgetkey?>-map">
@@ -327,14 +334,14 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	</div>
 	<span id="ip2l-details" >
 		<table id="ip2l-table" class="table table-striped table-hover">
-			<thead>
+		<thead class="ip2ltable">
 				<tr>
 				<td>Act</td>
 				<td>Time</td>
 				<td>IF</td>
-				<td>IP</td>
+				<td>IP address</td>
 				<td>Hits</td>
-				<td colspan="2">Actions</td>
+				<td>Actions</td>
 				<tr>
 			</thead>
 			<tbody id="ip2l-tbody"></tbody>
@@ -342,13 +349,18 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	</span>
 </div>
 
+
 <script>
 //<![CDATA[
 	var coords_x = localStorage.getItem("coords_x") ?? <?=isset($coords_x) ? htmlspecialchars($coords_x) : 51.505?>;
 	var coords_y = localStorage.getItem("coords_y") ?? <?=isset($coords_y) ? htmlspecialchars($coords_y) : -0.09?>;
 	var zoom = localStorage.getItem("zoom") ?? <?=isset($zoom) ? htmlspecialchars($zoom) : 13?>;
+	var ip2l_token = <?=json_encode($ip2l_token)?>;
 	var apiUrl = <?=json_encode($ip2l_api_hostport)?>;
-
+	var htmlUrl = <?=json_encode($ip2l_html_hostport)?>;
+	var widgetkey = <?=json_encode($widgetkey)?>;
+	var winboxIp2LDetails;
+	
 	if (coords_x != null && coords_y != null && zoom != null) {
 		map_coords = [coords_x, coords_y];
 		map_zoom = zoom;
@@ -389,11 +401,9 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	map.on('zoomend', onMapMove);
 	map.on('moveend', onMapMove);
 
-	recreateIp2LDetailsTable();
+	loadIp2LTablefromBackend();
+	//recreateIp2LDetailsTable();
 
-	function openIpLDetailsWindow() {
-
-	}
 //]]>
 </script>
 
@@ -450,6 +460,7 @@ $pconfig['ip2l_log_acts'] = isset($user_settings['widgets'][$widgetkey]['ip2l_lo
 $pconfig['ip2l_log_interfaces'] = isset($user_settings['widgets'][$widgetkey]['ip2l_log_interfaces']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_interfaces'] : '';
 $pconfig['ip2l_log_seconds'] = isset($user_settings['widgets'][$widgetkey]['ip2l_log_seconds']) ? $user_settings['widgets'][$widgetkey]['ip2l_log_seconds'] : '';
 $pconfig['ip2l_api_hostport'] = isset($user_settings['widgets'][$widgetkey]['ip2l_api_hostport']) ? $user_settings['widgets'][$widgetkey]['ip2l_api_hostport'] : '';
+$pconfig['ip2l_html_hostport'] = isset($user_settings['widgets'][$widgetkey]['ip2l_html_hostport']) ? $user_settings['widgets'][$widgetkey]['ip2l_html_hostport'] : '';
 $pconfig['ip2l_submit_api'] = isset($user_settings['widgets'][$widgetkey]['ip2l_submit_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_submit_api'] : '';
 $pconfig['ip2l_results_api'] = isset($user_settings['widgets'][$widgetkey]['ip2l_results_api']) ? $user_settings['widgets'][$widgetkey]['ip2l_results_api'] : '';
 $pconfig['ip2l_health'] = isset($user_settings['widgets'][$widgetkey]['ip2l_health']) ? $user_settings['widgets'][$widgetkey]['ip2l_health'] : '';
@@ -463,25 +474,31 @@ $pconfig['ip2l_token'] = isset($user_settings['widgets'][$widgetkey]['ip2l_token
 	<?=gen_customwidgettitle_div($widgetconfig['title']); ?>
 
 	<div class="form-group" id="ip2l">
-		<label for="ip2l_api_hostport" class="col-sm-4 control-label"><?=gettext('IP2Location daemon http[s]://<hostname>:<port> ')?></label>
+		<label for="ip2l_api_hostport" class="col-sm-4 control-label"><?=gettext('Backend API service ')?></label>
 		<div class="col-sm-4">
-			<input type="text" name="ip2l_api_hostport" id="ip2l_api_hostport" value="<?=$pconfig['ip2l_api_hostport']?>" placeholder="http://localhost:9999" class="form-control" />
+			<input type="text" name="ip2l_api_hostport" id="ip2l_api_hostport" value="<?=$pconfig['ip2l_api_hostport']?>" placeholder="https://localhost:9999" class="form-control" />
 		</div>
 	</div>
 	<div class="form-group" id="ip2l">
-		<label for="ip2l_submit_api" class="col-sm-4 control-label"><?=gettext('Submit filter logs API [/filterlog] ')?></label>
+		<label for="ip2l_html_hostport" class="col-sm-4 control-label"><?=gettext('Backend HTML service ')?></label>
 		<div class="col-sm-4">
-			<input type="text" name="ip2l_submit_api" id="ip2l_submit_api" value="<?=$pconfig['ip2l_submit_api']?>" placeholder="/filterlog" class="form-control" />
+			<input type="text" name="ip2l_html_hostport" id="ip2l_html_hostport" value="<?=$pconfig['ip2l_html_hostport']?>" placeholder="http://localhost:9999" class="form-control" />
 		</div>
 	</div>
 	<div class="form-group" id="ip2l">
-		<label for="ip2l_results_api" class="col-sm-4 control-label"><?=gettext('Retrieve resutls API [/results] ')?></label>
+		<label for="ip2l_submit_api" class="col-sm-4 control-label"><?=gettext('Submit filter logs API endpoint ')?></label>
 		<div class="col-sm-4">
-			<input type="text" name="ip2l_results_api" id="ip2l_results_api" value="<?=$pconfig['ip2l_results_api']?>" placeholder="/results" class="form-control" />
+			<input type="text" name="ip2l_submit_api" id="ip2l_submit_api" value="<?=$pconfig['ip2l_submit_api']?>" placeholder="/api/filterlog" class="form-control" />
 		</div>
 	</div>
 	<div class="form-group" id="ip2l">
-		<label for="ip2l_health" class="col-sm-4 control-label"><?=gettext('Service health check endpoint [/health] ')?></label>
+		<label for="ip2l_results_api" class="col-sm-4 control-label"><?=gettext('Retrieve resutls API endpoint ')?></label>
+		<div class="col-sm-4">
+			<input type="text" name="ip2l_results_api" id="ip2l_results_api" value="<?=$pconfig['ip2l_results_api']?>" placeholder="/api/results" class="form-control" />
+		</div>
+	</div>
+	<div class="form-group" id="ip2l">
+		<label for="ip2l_health" class="col-sm-4 control-label"><?=gettext('Service health check endpoint ')?></label>
 		<div class="col-sm-4">
 			<input type="text" name="ip2l_health" id="ip2l_health" value="<?=$pconfig['ip2l_health']?>" placeholder="/health" class="form-control" />
 		</div>

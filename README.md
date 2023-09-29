@@ -25,7 +25,7 @@ The dashboard widget and backend service are designed for use with the IP2Locati
 ### WIP features (part implemented)
 * Backend service standalone mode, allowing monitoring of host's network traffic without pfSense
 * Configurable map tile providers for Leaflet.js
-* Additional UI for cache controls, monitoring and hit rates and configuration of the backend
+* Additional UI for cache controls, monitoring and hit rates and configruation of the backend
 * Transfer storage of Watch list from the local browser storage to the backend service 
 
 
@@ -34,7 +34,7 @@ The dashboard widget and backend service are designed for use with the IP2Locati
 
 ## Getting started
 
-This project requires Go to be installed. Follow the instructions to download and install Go from: https://go.dev/doc/install. At the time of writing, the latest version is 1.21.1.
+This project requires Go to be installed. Follow the instrucions to download and install Go from: https://go.dev/doc/install. At the time of writing, the latest version is 1.21.1.
 
 The backend service can be run on any platform and OS that supports Go, such as Linux, Windows, MacOS and FreeBSD. For all available ports, refer to: https://go.dev/dl/
 

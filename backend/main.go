@@ -10,11 +10,12 @@ import (
 var appName string = "IP2Location-pfSense"
 
 func main() {
-	util.LogDebug("[main] Starting %v ...", appName)
+	util.Verbose = true
+	util.Log("[main] Starting %v ...", appName)
 
 	flag.Parse()
 
-	util.LogDebug("[main] Initialising service ...")
+	util.Log("[main] Initialising service ...")
 
 	cmd.Execute()
 }

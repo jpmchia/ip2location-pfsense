@@ -8,193 +8,186 @@ import (
 
 	"github.com/jpmchia/ip2location-pfsense/backend/cache"
 	"github.com/jpmchia/ip2location-pfsense/backend/config"
-	"github.com/jpmchia/ip2location-pfsense/backend/pfsense"
+	"github.com/jpmchia/ip2location-pfsense/backend/service/apikey"
+	"github.com/jpmchia/ip2location-pfsense/backend/service/controller"
+	"github.com/jpmchia/ip2location-pfsense/backend/service/routes"
 	"github.com/jpmchia/ip2location-pfsense/backend/util"
-	"github.com/jpmchia/ip2location-pfsense/backend/webserve"
+	"github.com/jpmchia/ip2location-pfsense/backend/web"
+	"github.com/mikestefanello/pagoda/pkg/services"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-var bind_host string
-var bind_port string
-var ingest_logs string
-var ip_requests string
-var ip2l_results string
-var ip2geomap string
-var healthcheck string
+type WebService struct {
+	bind_host string
+	bind_port string
+	ssl_cert  string
+	ssl_key   string
+	UseSSL    bool
+}
 
-var ssl_cert string
-var ssl_key string
-var UseSSL bool
-
-//var definedPaths = []string{ingest_logs, ip_requests, ip2l_results, ip2geomap, healthcheck, "/static", "/favicon.ico"}
-
-// var valid_api_keys map[string]string
+var webService WebService
+var conf config.ServiceOptions
 
 func init() {
 
 	config.Configure()
+	conf = config.GetConfiguration().Service
 
-	conf := config.GetConfiguration().Service
+	webService.bind_host = conf.BindHost
+	webService.bind_port = conf.BindPort
+	webService.UseSSL = conf.UseSSL
+	webService.ssl_cert = conf.SSLCert
+	webService.ssl_key = conf.SSLKey
 
-	bind_host = conf.BindHost
-	bind_port = conf.BindPort
+	util.Log("[service] Service host and port: %v:%v", webService.bind_host, webService.bind_port)
+}
 
-	UseSSL = conf.UseSSL
-	ssl_cert = conf.SSLCert
-	ssl_key = conf.SSLKey
-
-	util.LogDebug("Initialising service and binding on %v:%v", bind_host, bind_port)
-	ingest_logs = conf.IngestLogs
-	util.LogDebug("Ingest logs: %v", ingest_logs)
-	ip_requests = conf.IPRequests
-	util.LogDebug("IP requests: %v", ip_requests)
-	ip2l_results = conf.Results
-	util.LogDebug("IP2Location results: %v", ip2l_results)
-	ip2geomap = conf.DetailPage
-	util.LogDebug("IP2Location GeoMap: %v", ip2geomap)
-	healthcheck = conf.HealthCheck
-	util.LogDebug("Health check: %v", healthcheck)
+func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
+	home := routes.Home{Controller: ctr}
+	g.GET("/", home.Get).Name = "home"
+	// g.GET("/about", home.About).Name = "about"
+	// g.GET("/contact", home.Contact).Name = "contact"
 }
 
 // Service is the main entry point for the service
 // It starts the service and listens for requests
-// It also handles the requests
 func Start(args []string) {
-	log.Print("Starting service ...")
-
+	util.Log("[service] Starting service ...")
+	var err error
+	// Create a new echo instance
 	e := echo.New()
 	e.HideBanner = true
 
-	//e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-	//	Format: "${time_rfc3339} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n"}))
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${time_rfc3339_nano} ${id} ${remote_ip} method=${method} uri=${uri} status=${status} error=${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n",
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogMethod:    true,
+		LogURI:       true,
+		LogProtocol:  true,
+		LogRequestID: true,
+		LogRemoteIP:  true,
+		LogHost:      true,
+		LogRoutePath: true,
+		LogURIPath:   true,
+		LogStatus:    true,
+		LogError:     true,
+		BeforeNextFunc: func(c echo.Context) {
+			//c.Set("customValueFromContext", 42)
+		},
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			util.Log("[service] REQUEST: %v, RemoteIP: %v, Host: %v, RoutePath: %v, Method: %v, URI: %v, Status: %v, Error: %v", v.Protocol, v.RemoteIP, v.Host, v.RoutePath, v.Method, v.URI, v.Status, v.Error)
+			return nil
+		},
 	}))
 	e.Logger.SetHeader("${time_rfc3339_nano} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
 
+	// Recover from panics
 	e.Use(middleware.Recover())
-	e.GET(healthcheck, healthCheck)
-	e.POST(ingest_logs, ingestLog)
-	e.GET(ip2l_results, ip2Results)
-	e.GET(ip2geomap, ip2MapResults)
-	e.POST(ip_requests, ipRequest)
-	e.GET(ip2geomap, ip2GeoMap)
 
-	e = webserve.ServeEmeddedContent(e)
+	if (conf.) {
 
-	g := e.Group("/api")
+	// CORS
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, "Authorization"},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
+	}))
 
-	g.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		KeyLookup:  "header:" + echo.HeaderAuthorization,
-		AuthScheme: "Bearer",
-		Validator: func(key string, c echo.Context) (bool, error) {
-			if key == "" {
-				util.LogDebug("[service] Missing API key")
-				return false, errors.New("missing api key")
-			}
-			valid_api_keys := config.ConfigProvider().GetStringSlice("apikeys")
-			for _, valid_key := range valid_api_keys {
-				if key == valid_key {
-					util.LogDebug("[service] Valid API key recieved.")
-					return true, nil
-				}
-			}
-			return false, nil
-		},
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Pre(middleware.Rewrite(map[string]string{
+		"/": "/main.html",
+	}))
+
+	e = web.ServeEmbeddedFiles(e)
+
+	// Routes
+	// Handler
+	e.GET(routes.HealthCheck_Route, routes.HealthCheck_Handler) // Health Check
+	e.GET("/api/key", apikey.ApiKeyHandler)                     // Get API key
+
+	// pfSense Filter Logs endpoints
+	e.POST(routes.FilterLogs_PostRoute, routes.PostLogsHandler) // Ingest pfSense Filter Logs
+	e.GET(routes.FilterLogs_GetRoute, routes.GetResultsHandler) // Get IP2Location results
+
+	// pfSense widget endpoints
+	// e.GET(widget.GetRoute, widget.GetHandler)    // Get IP2Location results for the GeoMap
+	// e.POST(widget.PostRoute, widget.PostHandler) // Post IP2Location API request
+
+	// WatchList endpoints
+	e.POST(routes.WatchList_PostItemRoute, routes.PostLogsHandler)
+	e.GET(routes.WatchList_GetItemRoute, routes.GetItemHandler)
+	e.GET(routes.WatchList_GetRoute, routes.GetHandler)
+	e.DELETE(routes.WatchList_DeleteItemRoute, routes.DeleteHandler)
+
+	e.GET("/", web.HomeHandler)
+	e.GET("/test.html", web.HomeHandler)
+	e.GET("/index.html", web.HomeHandler)
+
+	// Web content
+	if conf.EnableWeb {
+		util.Log("[service] Enabling web content: %s", conf.HomePage)
+		// e.GET(conf.HomePage, HomePageHandler)
+		// e = web.ServeEmeddedContent(e)
+		// e = web.ServeTempateFiles(e, "", "main-layout")
+		// e = web.ServeTempateFiles(e, "/ip2l", "ip2l-layout")
+	} else {
+		util.Log("[service] Web content is disabled. Use the --enable-web flag to enable it or set the enable_web option in the configuration file.")
+	}
+
+	apiAuth := e.Group("/api")
+
+	apiAuth.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		KeyLookup:              "header:" + echo.HeaderAuthorization,
+		AuthScheme:             "Bearer",
+		Validator:              apikey.ValidateToken,
 		ContinueOnIgnoredError: false,
 	}))
 
-	e = webserve.ServeEmbeddedErrorFiles(e)
-	e = webserve.ServeErrorTemplate(e)
-	e = webserve.ServeFavIcons(e)
+	ipl2Auth := e.Group("/ip2l")
 
-	e.HTTPErrorHandler = webserve.CustomHTTPErrorHandler
+	ipl2Auth.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		KeyLookup:              "query:key",
+		Validator:              apikey.ValidateKey,
+		ContinueOnIgnoredError: false,
+	}))
 
-	util.LogDebug("[service] Service called with: %s", strings.Join(args, " "))
+	e = web.ServeEmeddedContent(e)
+	// e = web.ServeEmbeddedErrorFiles(e)
+	// e = web.ServeErrorTemplate(e)
+	e = web.ServeFavIcons(e)
+
+	e.HTTPErrorHandler = web.CustomHTTPErrorHandler
 
 	useCache := config.GetConfiguration().UseRedis
 	if useCache {
 		util.LogDebug("[service] Using Redis cache")
 		cache.CreateInstances()
 	}
-	var err error
 
-	log.Printf("[service] Binding to: %v port %v; using SSL: %v", bind_host, bind_port, UseSSL)
-	if UseSSL {
+	util.Log("[service] Binding to: %v port %v; using SSL: %v", webService.bind_host, webService.bind_port, webService.UseSSL)
+
+	PrintDebug(*e)
+
+	if webService.UseSSL {
 		util.LogDebug("[service] Using SSL")
-		util.LogDebug("[service] Certifcate: %v; Key: %v", ssl_cert, ssl_key)
-		err = e.StartTLS(bind_host+":"+bind_port, ssl_cert, ssl_key)
-
+		util.LogDebug("[service] Certifcate: %v; Key: %v", webService.ssl_cert, webService.ssl_key)
+		err = e.StartTLS(webService.bind_host+":"+webService.bind_port, webService.ssl_cert, webService.ssl_key)
 	} else {
-		err = e.Start(bind_host + ":" + bind_port)
+		err = e.Start(webService.bind_host + ":" + webService.bind_port)
 	}
 
-	util.HandleFatalError(err, "Failed to start service")
+	util.HandleFatalError(err, "[service] Failed to start service")
 }
 
-// Health Check API
-// Returns a simple string to indicate that the service is available
-func healthCheck(c echo.Context) error {
-	util.LogDebug("[service] Responding to health check request\n")
-	return c.String(http.StatusOK, "Service is available.")
-}
-
-// Process pfSense Filter Logs
-// Expected input is a pfSense FilterLog JSON object (see pfsense/pfsense.go)
-// Returns a JSON object with the IP address and the IP2Location data
-func ingestLog(c echo.Context) error {
-	filterLog := new(pfsense.FilterLog)
-	if err := c.Bind(filterLog); err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
+func PrintDebug(e echo.Echo) {
+	routes := e.Routes()
+	for _, route := range routes {
+		util.Log("[service] Method: %s %v  ==>  %v", route.Method, route.Path, route.Name)
 	}
-	util.LogDebug("[service] Received log entries\n")
-	resultid := pfsense.ProcessLogEntries(*filterLog)
-
-	return c.JSON(http.StatusOK, resultid)
 }
 
-// Returns IP2Location results
-// Expected input is a resultid from a previous request, supplied as a query parameter
-// e.g. http://localhost:9999/ip2lresults?id=xxxxxxxx
-func ip2Results(c echo.Context) error {
-	resultid := c.QueryParam("id")
-	util.LogDebug("[service] Received request for resultid: %s\n", resultid)
-	resultset, err := pfsense.GetResult(resultid)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
-	}
-	return c.JSON(http.StatusOK, resultset)
-}
-
-// Static file handler for the IP2Location GeoMap
-// Returns the HTML file for the GeoMap page
-func ip2GeoMap(c echo.Context) error {
-	util.LogDebug("[service] Received request for ip2geomap\n")
-	return c.File("ip2geomap.html")
-}
-
-// Responds to requests from the static geomap page
-func ip2MapResults(c echo.Context) error {
-	resultid := c.QueryParam("resultid")
-	util.LogDebug("[service] Received request for resultid: %s\n", resultid)
-	resultset, err := pfsense.GetRawResult(resultid)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
-	}
-
-	return c.JSON(http.StatusOK, resultset)
-}
-
-// Responds to a request for IP2Location data
-// Expected input is a JSON object with a single IP address
-// Returns a JSON object with the IP address and the IP2Location data
-func ipRequest(c echo.Context) error {
-	pfLog := new(pfsense.FilterLog) // Bind
-	util.LogDebug("[service] Received request for IP2Location data\n")
-	if err := c.Bind(pfLog); err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
-	}
-	return c.JSON(http.StatusOK, pfLog)
-}
+// // HomePageHandler serves the home page
+// func HomePageHandler(c echo.Context) error {
+// 	util.Log("[service] Received request for homepage\n")
+// 	return c.File("/index.html")
+// }

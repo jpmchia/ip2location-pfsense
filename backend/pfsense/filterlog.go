@@ -72,6 +72,7 @@ type Ip2Map struct {
 	Asn         string  `json:"asn"`
 	As          string  `json:"as"`
 	IsProxy     bool    `json:"is_proxy"`
+	WatchList   bool    `json:"watch_list"`
 }
 
 type Ip2MapLocations map[string]Ip2Map

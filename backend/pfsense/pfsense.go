@@ -13,7 +13,7 @@ import (
 	"github.com/jpmchia/ip2location-pfsense/backend/util"
 
 	"github.com/gomodule/redigo/redis"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/nitishm/go-rejson/v4"
 
 	"strconv"
@@ -21,16 +21,8 @@ import (
 
 const pfSenseCache string = "pfsense"
 
-//const pfSenseCacheConfig string = "redis.pfsense"
-
-// var ctx = context.Background()
-// var addrpf *string
-
 func init() {
-	// LogDebug("Loading configuration for pfSense")
-	// c := config.LoadConfigProvider("github.com/jpmchia/ip2location-pfsense/backend")
-	// c.Get(pfSenseCache)
-	//cache.LoadConfiguration(pfSenseCacheConfig)
+	ActiveWatchList = NewWatchList()
 }
 
 func ProcessLog(c echo.Context) (*Ip2ResultId, error) {
@@ -71,6 +63,12 @@ func ProcessLogEntries(logEntries FilterLog) int64 {
 			continue
 		}
 
+		if ActiveWatchList.Contains(ip2Map.IP) {
+			util.LogDebug("[pfsense] IP address %v is on the watchlist", ip2Map.IP)
+			ip2Map.WatchList = true
+			ActiveWatchList.AddLogEntry(ip2Map.IP, *ip2Map)
+		}
+
 		ip2MapList = append(ip2MapList, *ip2Map)
 	}
 
@@ -101,7 +99,6 @@ func CacheResult(ip2MapList []Ip2Map) int64 {
 		return -1
 	}
 
-	//log.Printf("[pfsense] ResultSet = %s %v", strconv.FormatInt(resultSet, 16), res)
 	log.Printf("[pfsense] ResultSet = %s %v", trunckey, res)
 	return resultSet
 }

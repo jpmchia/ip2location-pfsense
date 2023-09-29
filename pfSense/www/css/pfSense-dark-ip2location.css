@@ -194,7 +194,7 @@ i.fa {
 .table>thead>tr>td,
 .table>thead>tr>th {
     /* padding: 4px 5px; */
-    padding: 3px 5px;
+    padding: 4px 5px;
 }
 
 body {
@@ -255,7 +255,7 @@ a:hover {
 body {
     margin: 0;
     height: 100%;
-    width: 100%;
+    width: 100vw;
     background: #0c0c0b;
     overflow: auto;
     /* display: grid;*/
