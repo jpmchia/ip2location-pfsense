@@ -2,12 +2,11 @@
 .PHONY: build build-alpine clean test help default
 
 BIN_NAME=ip2location-pfsense
-
-VERSION := $(shell grep "const Version " backend/version/version.go | sed -E 's/.*"(.+)"$$/\1/')
+VERSION :=$(shell grep "const Version" backend/version/version.go | sed -E 's/.*"([^"]+)".*/\1/')
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 BUILD_DATE=$(shell date '+%Y-%m-%d-%H:%M:%S')
-IMAGE_NAME := "jpmchia/ip2location-pfsense"
+IMAGE_NAME :="jpmchia/ip2location-pfsense"
 
 default: test
 
@@ -31,7 +30,10 @@ build:
 	go build -C ./backend -ldflags "-X github.com/jpmchia/IP2Location-pfSense/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/jpmchia/IP2Location-pfSense/version.BuildDate=${BUILD_DATE}" -o bin/${BIN_NAME}
 
 get-deps:
-	dep ensure
+	@echo "getting dependencies"
+	@echo "GOPATH=${GOPATH}"
+	cd backend && go get . && go mod tidy && go mod vendor
+	
 
 build-alpine:
 	@echo "building ${BIN_NAME} ${VERSION}"

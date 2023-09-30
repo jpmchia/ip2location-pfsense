@@ -5,6 +5,8 @@ bin
 build
 target
 WIP
+local
+
 ```
 # Binaries for programs and plugins
 *.exe

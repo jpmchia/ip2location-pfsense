@@ -3,7 +3,6 @@ package config
 type (
 	Options struct {
 		InstallationPath string                  `mapstructure:"installation_path"`
-		Environment      environment             `mapstructure:"environment"`
 		IP2API           Ip2ApiOptions           `mapstructure:"ip2api"`
 		Redis            map[string]RedisOptions `mapstructure:"redis"`
 		JsonLogs         bool                    `mapstructure:"jsonlogs"`
@@ -45,4 +44,5 @@ type (
 		IPRequests   string   `mapstructure:"ip_requests"`
 		HealthCheck  string   `mapstructure:"healthcheck"`
 		BearerTokens []string `mapstructure:"service.bearertokens"`
-}
+	}
+)

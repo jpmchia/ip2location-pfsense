@@ -1,19 +1,14 @@
 package service
 
 import (
-	"errors"
-	"log"
 	"net/http"
-	"strings"
 
 	"github.com/jpmchia/ip2location-pfsense/backend/cache"
 	"github.com/jpmchia/ip2location-pfsense/backend/config"
 	"github.com/jpmchia/ip2location-pfsense/backend/service/apikey"
-	"github.com/jpmchia/ip2location-pfsense/backend/service/controller"
 	"github.com/jpmchia/ip2location-pfsense/backend/service/routes"
 	"github.com/jpmchia/ip2location-pfsense/backend/util"
 	"github.com/jpmchia/ip2location-pfsense/backend/web"
-	"github.com/mikestefanello/pagoda/pkg/services"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -44,16 +39,10 @@ func init() {
 	util.Log("[service] Service host and port: %v:%v", webService.bind_host, webService.bind_port)
 }
 
-func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
-	home := routes.Home{Controller: ctr}
-	g.GET("/", home.Get).Name = "home"
-	// g.GET("/about", home.About).Name = "about"
-	// g.GET("/contact", home.Contact).Name = "contact"
-}
-
 // Service is the main entry point for the service
 // It starts the service and listens for requests
 func Start(args []string) {
+
 	util.Log("[service] Starting service ...")
 	var err error
 	// Create a new echo instance
@@ -79,26 +68,39 @@ func Start(args []string) {
 			return nil
 		},
 	}))
+
 	e.Logger.SetHeader("${time_rfc3339_nano} ${id} ${remote_ip} ${method} ${uri} ${user_agent} ${status} ${error} ${latency} ${latency_human} ${bytes_in} ${bytes_out}\n")
 
 	// Recover from panics
 	e.Use(middleware.Recover())
 
-	if (conf.) {
-
 	// CORS
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, "Authorization"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
-	}))
+
+	hosts := conf.AllowHosts
+	if conf.AllowHosts[0] != "*" {
+		if len(conf.AllowHosts) > 1 {
+			if conf.AllowHosts[0] != "*" {
+				e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+					AllowOrigins: hosts,
+					AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, "Authorization"},
+					AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
+				}))
+			}
+		}
+	} else {
+		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, "Authorization"},
+			AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
+		}))
+	}
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Pre(middleware.Rewrite(map[string]string{
 		"/": "/main.html",
 	}))
 
-	e = web.ServeEmbeddedFiles(e)
+	// e = web.ServeEmbeddedFiles(e)
 
 	// Routes
 	// Handler
@@ -119,9 +121,9 @@ func Start(args []string) {
 	e.GET(routes.WatchList_GetRoute, routes.GetHandler)
 	e.DELETE(routes.WatchList_DeleteItemRoute, routes.DeleteHandler)
 
-	e.GET("/", web.HomeHandler)
-	e.GET("/test.html", web.HomeHandler)
-	e.GET("/index.html", web.HomeHandler)
+	// e.GET("/", web.HomeHandler)
+	// e.GET("/test.html", web.HomeHandler)
+	// e.GET("/index.html", web.HomeHandler)
 
 	// Web content
 	if conf.EnableWeb {
@@ -166,7 +168,10 @@ func Start(args []string) {
 
 	util.Log("[service] Binding to: %v port %v; using SSL: %v", webService.bind_host, webService.bind_port, webService.UseSSL)
 
-	PrintDebug(*e)
+	routes := e.Routes()
+	for _, route := range routes {
+		util.Log("[service] Method: %s %v  ==>  %v", route.Method, route.Path, route.Name)
+	}
 
 	if webService.UseSSL {
 		util.LogDebug("[service] Using SSL")
@@ -177,13 +182,6 @@ func Start(args []string) {
 	}
 
 	util.HandleFatalError(err, "[service] Failed to start service")
-}
-
-func PrintDebug(e echo.Echo) {
-	routes := e.Routes()
-	for _, route := range routes {
-		util.Log("[service] Method: %s %v  ==>  %v", route.Method, route.Path, route.Name)
-	}
 }
 
 // // HomePageHandler serves the home page
