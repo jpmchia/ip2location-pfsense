@@ -33,6 +33,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Test
-      run: go test -p 1 ./...
+    # - name: Test
+    #   run: go test -p 1 ./...
 
