@@ -328,10 +328,11 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 <div id="<?=$widgetkey?>-map">
 	<div id="leaflet" style="height: 320px;">
 	</div>
-	<div id="progress"><div id="progress-bar"></div></div>
+	
 	<div class="subpanel-body">
 		<span class="ip2l_status"><?=gettext($ip2l_display_status); ?></span>
 	</div>
+
 	<span id="ip2l-details" >
 		<table id="ip2l-table" class="table table-striped table-hover">
 		<thead class="ip2ltable">
@@ -341,7 +342,7 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 				<td>IF</td>
 				<td>IP address</td>
 				<td>Hits</td>
-				<td>Actions</td>
+				<td colspan="2">Actions</td>
 				<tr>
 			</thead>
 			<tbody id="ip2l-tbody"></tbody>

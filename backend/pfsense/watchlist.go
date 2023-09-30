@@ -9,6 +9,10 @@ import (
 	"github.com/jpmchia/ip2location-pfsense/backend/util"
 )
 
+// <a class="fa fa-plus-square-o icon-pointer icon-primary"
+// href="easyrule.php?action=pass&amp;int=wg1&amp;proto=tcp&amp;src=[2001:da8:d00a:2::]&amp;dst=[2a0e:97c0:5c1::]&amp;dstport=19128&amp;ipproto=inet6"
+// title="" data-original-title="EasyRule: Pass this traffic">
+
 type WatchListItem struct {
 	IpAddress  string   `json:"ip"`
 	LogEntries []Ip2Map `json:"entries"`
@@ -19,6 +23,9 @@ type WatchListItem struct {
 	Country    string   `json:"country"`
 	Direction  string   `json:"direction"`
 	Act        string   `json:"act"`
+	Srcip      string   `json:"srcip"`
+	Dstip      string   `json:"dstip"`
+	Dstport    string   `json:"dstport"`
 	Interface  string   `json:"interface"`
 	Proto      string   `json:"proto"`
 	Rulenum    string   `json:"rulenum"`
@@ -33,6 +40,9 @@ type WatchListDisplayItem struct {
 	Country   string `json:"country"`
 	Direction string `json:"direction"`
 	Act       string `json:"act"`
+	Srcip     string `json:"srcip"`
+	Dstip     string `json:"dstip"`
+	Dstport   string `json:"dstport"`
 	Interface string `json:"interface"`
 	Proto     string `json:"proto"`
 	Rulenum   string `json:"rulenum"`
@@ -74,6 +84,9 @@ func LoadWatchListDisplayItems() {
 			City:      wli.(WatchListItem).City,
 			Country:   wli.(WatchListItem).Country,
 			Direction: wli.(WatchListItem).Direction,
+			Srcip:     wli.(WatchListItem).Srcip,
+			Dstip:     wli.(WatchListItem).Dstip,
+			Dstport:   wli.(WatchListItem).Dstport,
 			Act:       wli.(WatchListItem).Act,
 			Interface: wli.(WatchListItem).Interface,
 			Proto:     wli.(WatchListItem).Proto,
@@ -126,7 +139,7 @@ func WriteWatchList(wl WatchList, filename string) {
 		fmt.Fprintf(file, "%v\n", item)
 	}
 
-	log.Printf("[pfsense] WatchList written to %v\n", filename)
+	util.Log("[pfsense] WatchList written to %v\n", filename)
 }
 
 // Add adds a new log entry to the WatchList
@@ -141,10 +154,18 @@ func (wl WatchList) Add(ip string, ip2mapEntry Ip2Map) {
 			City:       ip2mapEntry.CityName,
 			Country:    ip2mapEntry.CountryName,
 			Direction:  ip2mapEntry.Direction,
-			Act:        ip2mapEntry.Act,
-			Interface:  ip2mapEntry.Interface,
-			Proto:      ip2mapEntry.Proto,
-			Rulenum:    ip2mapEntry.Rulenum,
+			Srcip:      ip2mapEntry.Srcip,
+			Dstip:      ip2mapEntry.Dstip,
+			Dstport: (func() string {
+				if ip2mapEntry.Dstport != nil {
+					return *ip2mapEntry.Dstport
+				}
+				return ""
+			})(),
+			Act:       ip2mapEntry.Act,
+			Interface: ip2mapEntry.Interface,
+			Proto:     ip2mapEntry.Proto,
+			Rulenum:   ip2mapEntry.Rulenum,
 		}
 		util.LogDebug("[watchlist] Adding new WatchListItem: %v", wl[ip])
 	} else {
@@ -157,10 +178,18 @@ func (wl WatchList) Add(ip string, ip2mapEntry Ip2Map) {
 			City:       ip2mapEntry.CityName,
 			Country:    ip2mapEntry.CountryName,
 			Direction:  ip2mapEntry.Direction,
-			Act:        ip2mapEntry.Act,
-			Interface:  ip2mapEntry.Interface,
-			Proto:      ip2mapEntry.Proto,
-			Rulenum:    ip2mapEntry.Rulenum,
+			Srcip:      ip2mapEntry.Srcip,
+			Dstip:      ip2mapEntry.Dstip,
+			Dstport: (func() string {
+				if ip2mapEntry.Dstport != nil {
+					return *ip2mapEntry.Dstport
+				}
+				return ""
+			})(),
+			Act:       ip2mapEntry.Act,
+			Interface: ip2mapEntry.Interface,
+			Proto:     ip2mapEntry.Proto,
+			Rulenum:   ip2mapEntry.Rulenum,
 		}
 		util.LogDebug("[watchlist] Updating WatchListItem: %v", wl[ip])
 	}
@@ -240,6 +269,9 @@ func (wl WatchList) GetWatchListDisplayItems() []WatchListDisplayItem {
 			Country:   item.Country,
 			Direction: item.Direction,
 			Act:       item.Act,
+			Srcip:     item.Srcip,
+			Dstip:     item.Dstip,
+			Dstport:   item.Dstport,
 			Interface: item.Interface,
 			Proto:     item.Proto,
 			Rulenum:   item.Rulenum,
@@ -259,6 +291,9 @@ func (wl WatchList) GetDisplayItem(ip string) WatchListDisplayItem {
 		Country:   item.Country,
 		Direction: item.Direction,
 		Act:       item.Act,
+		Srcip:     item.Srcip,
+		Dstip:     item.Dstip,
+		Dstport:   item.Dstport,
 		Interface: item.Interface,
 		Proto:     item.Proto,
 		Rulenum:   item.Rulenum,
@@ -266,3 +301,18 @@ func (wl WatchList) GetDisplayItem(ip string) WatchListDisplayItem {
 
 	return wldi
 }
+
+// IpAddress string `json:"ip"`
+// Count     int    `json:"hits"`
+// FirstSeen string `json:"time"`
+// LastSeen  string `json:"lastSeen"`
+// City      string `json:"city"`
+// Country   string `json:"country"`
+// Direction string `json:"direction"`
+// Act       string `json:"act"`
+// Srcip:     item.Srcip,
+// Dstip:     item.Dstip,
+// Dstport:   item.Dstport,
+// Interface string `json:"interface"`
+// Proto     string `json:"proto"`
+// Rulenum   string `json:"rulenum"`

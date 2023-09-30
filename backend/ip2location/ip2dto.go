@@ -125,3 +125,37 @@ type Ip2LocationPlus struct {
 	} `json:"geotargeting"`
 	IsProxy bool `json:"is_proxy"`
 }
+
+type WatchListEntry struct {
+	Time        string  `json:"time"`
+	IP          string  `json:"ip"`
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
+	Direction   string  `json:"direction"`
+	Act         string  `json:"act"`
+	Reason      string  `json:"reason"`
+	Interface   string  `json:"interface"`
+	Realint     string  `json:"realint"`
+	Version     string  `json:"version"`
+	Srcip       string  `json:"srcip"`
+	Dstip       string  `json:"dstip"`
+	Srcport     string  `json:"srcport"`
+	Dstport     string  `json:"dstport"`
+	Proto       string  `json:"proto"`
+	Protoid     string  `json:"protoid"`
+	Length      string  `json:"length"`
+	Rulenum     string  `json:"rulenum"`
+	Subrulenum  string  `json:"subrulenum"`
+	Anchor      string  `json:"anchor"`
+	Tracker     string  `json:"tracker"`
+	CountryCode string  `json:"country_code"`
+	CountryName string  `json:"country_name"`
+	RegionName  string  `json:"region_name"`
+	CityName    string  `json:"city_name"`
+	ZipCode     string  `json:"zip_code"`
+	TimeZone    string  `json:"time_zone"`
+	Asn         string  `json:"asn"`
+	As          string  `json:"as"`
+	IsProxy     bool    `json:"is_proxy"`
+	WatchList   bool    `json:"watch_list"`
+}

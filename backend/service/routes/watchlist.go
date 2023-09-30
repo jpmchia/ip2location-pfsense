@@ -23,7 +23,8 @@ func init() {
 	util.Log("[watchlist] Watchlist get list endpoint: %s", WatchList_GetRoute)
 }
 
-// Responds to a request to add an IP address to the WatchList
+// Responds to a request to add an IP address to the WatchList, storing the IP2Map entry in Redis and
+// adding the IP address to the in memory list
 func PostItemHandler(c echo.Context) error {
 	ip_param := c.QueryParam("ip")
 	ip2MapEntry := new(pfsense.Ip2Map)
@@ -31,7 +32,7 @@ func PostItemHandler(c echo.Context) error {
 
 	if err := c.Bind(ip2MapEntry); err != nil {
 		util.HandleError(err, "[watchlist] Failed to read the request body: %v", err)
-		return c.String(http.StatusBadRequest, "Bad Request")
+		return c.String(http.StatusBadRequest, "[Watchlist] Bad Request. Failed to read the request body")
 	}
 
 	var ip = ip_param

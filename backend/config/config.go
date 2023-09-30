@@ -97,11 +97,18 @@ func initViperConfig(appName string) *viper.Viper {
 	v.SetDefault("redis.ip2location.db", 1)
 	v.SetDefault("redis.ip2location.auth", "ip2location")
 	v.SetDefault("redis.ip2location.pass", "password")
+
 	v.SetDefault("redis.pfsense.host", "127.0.0.1")
 	v.SetDefault("redis.pfsense.port", "6379")
 	v.SetDefault("redis.pfsense.db", 2)
 	v.SetDefault("redis.pfsense.auth", "ip2location")
 	v.SetDefault("redis.pfsense.pass", "password")
+
+	v.SetDefault("redis.watchlist.host", "127.0.0.1")
+	v.SetDefault("redis.watchlist.port", "6379")
+	v.SetDefault("redis.watchlist.db", 3)
+	v.SetDefault("redis.watchlist.auth", "ip2location")
+	v.SetDefault("redis.watchlist.pass", "password")
 
 	v.SetDefault("ip2api.url", "https://api.ip2location.io/")
 	v.SetDefault("ip2api.key", "")

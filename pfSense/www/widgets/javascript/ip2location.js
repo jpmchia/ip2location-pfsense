@@ -222,36 +222,6 @@ function createTooltip(item) {
 }
 
 
-// function checkUpdateTrackedItems(item_ip)
-// {
-//     var existngItems = JSON.parse(window.localStorage.getItem("ip2ldetails"));
-//     if (existngItems == null) {
-//         return;
-//     }
-//     var item = existngItems[item_ip];
-//     if (item == null) {
-//         return;
-//     }
-//     updateTrackedItem(item);
-// }
-
-// function updateTrackedItem(item) {
-//     item.hitcount++;
-//     saveItemToLocalStorage(item);
-//     recreateIp2LDetailsTable();
-// }
-
-// function generateTable(table, data) {
-//     for (let element of data) {
-//         let row = table.insertRow();
-//         for (key in element) {
-//             let cell = row.insertCell();
-//             let text = document.createTextNode(element[key]);
-//             cell.appendChild(text);
-//         }
-//     }
-// }
-
 function action_icon(item) {
     var act_icon;
     switch (item.act) {
@@ -296,30 +266,39 @@ function createTableRow1(item) {
     var act_icon = action_icon(item);
     var rule_icon = fwrule_icon(item);
     var rule_link;
-    if (item.act == "pass") {
-        rule_link = `easyrule.php?action=block&int=${item.interface}&src=${item.ip}&ipproto=${item.proto}`;
-    } else {
-        rule_link = `easyrule.php?action=pass&int=${item.interface}&src=${item.ip}&ipproto=${item.proto}`;
-    }
+
+    switch (item.act) {
+        case "block":
+        case "reject":
+            rule_link = `easyrule.php?action=${("pass")}&amp;int=${item.interface}&amp;proto=${item.proto}&amp;src=${item.srcip}&amp;dst=${item.dstip}&amp;dstport=${item.dstpot}&amp;ipproto=${item.version}`;
+            break;
+        case "pass":
+            rule_link = `easyrule.php?action=${("block")}&amp;int=${item.interface}&amp;proto=${item.proto}&amp;src=${item.srcip}&amp;dst=${item.dstip}&amp;dstport=${item.dstpot}&amp;ipproto=${item.version}`;
+            break;            
+        }
+
+    // rule_link = `easyrule.php?action=block&int=${item.interface}&src=${item.ip}&ipproto=${item.proto}`;
+    // <a class="fa fa-plus-square-o icon-pointer icon-primary"
+    // href="easyrule.php?action=pass&amp;int=wg1&amp;proto=tcp&amp;src=[2001:da8:d00a:2::]&amp;dst=[2a0e:97c0:5c1::]&amp;dstport=19128&amp;ipproto=inet6"
+    // title="" data-original-title="EasyRule: Pass this traffic">
 
     var row1 = `<td rowspan="2" style="vertical-align: middle;">${act_icon}</td>
         <td style="white-space: nowrap;">${item.time}</td>
         <td>${item.interface}</td>
         <td>${item.ip}</td>
         <td id="ip2l_status">${item.hits}</td>
-        <td id="ip2l_action_detail">
-            <a href="${rule_link}" title="EasyRule: Add to Block List"><i class="${rule_icon}" style="cursor: pointer;"></i></a>&nbsp;
-            <i class="fa fa-info" style="cursor: pointer;" onclick="javascript:showIP2LDetail('${item.ip}');" title="View IP location details."></i>
-        </td>`        
+        <td><a href="${rule_link}" title="EasyRule: Add a rule to Block / Unblock this IP."><i class="${rule_icon}" style="cursor: pointer;"></i></a></td>
+        <td><i class="fa fa-info" style="cursor: pointer;" onclick="javascript:showIP2LDetail('${item.ip}');" title="View IP location details."></i></td>`
     return row1;
 }
+
 
 function createTableRow2(item) { 
     var row2 = `
     <td style="white-space: nowrap;">${item.lastSeen}</td>
     <td colspan="3">${item.city}, ${item.country}</td>
-        <td colspan="1"><i class="fa fa-chevron-right" style="cursor: pointer;" onclick="javascript:showIP2Watchlist('${item.ip}');" title="View watch list detail."></i>&nbsp;
-        <i class="fa fa-times text-danger" style="cursor: pointer;" onclick="javascript:removeItem('${item.ip}');" title="Remove from watch list."></td>`
+    <td colspan="1"><i class="fa fa-chevron-right" style="cursor: pointer;" onclick="javascript:showIP2Watchlist('${item.ip}');" title="View watch list detail."></i></td>
+    <td><i class="fa fa-times text-danger" style="cursor: pointer;" onclick="javascript:removeItem('${item.ip}');" title="Remove from watch list."></td>`
     return row2;
 }
     
@@ -426,152 +405,3 @@ function showIP2Watchlist(item_ip) {
     console.log("showIP2LDetail: " + item_ip + " - " + ip2detailUrl);
 }
 
-// function loadIp2LTablefromSession() {
-//     var itemCount = 0;
-//     var detailedItems = JSON.parse(localStorage.getItem("ip2ldetails"));
-    
-//     if (detailedItems == null) {
-//         return 0;
-//     }
-
-//     var tbody = document.getElementById("ip2l-tbody");
-//     tbody.innerHTML = "";
-
-//     for (var key in detailedItems) {
-//         if (!detailedItems.hasOwnProperty(key)) {
-//             continue;
-//         }
-//         itemCount++;
-//         addIp2LItemToDetailsTable(detailedItems[key]);
-//     }
-//     return itemCount;
-// }
-
-// function recreateIp2LDetailsTable() {
-//     var span = document.getElementById("ip2l-details");
-//     var table = document.getElementById("ip2l-table");
-
-//     //var itemCount = loadIp2LTablefromSession();
-//     var itemCount = loadIp2LTablefromBackend();
-//     var rowCount = table.rows.length;
-    
-//     if (itemCount > 0 || rowCount > 1) {
-//         span.setAttribute("style", "display: block; visibility: visible;");
-//     } else {
-//         span.setAttribute("style", "display: none; visibility: hidden;");
-//     }
-// }
-
-// function getIp2LDetails(item) {
-//     return item;
-//     var requestdata = {
-//         ajax: "results",
-//         widgetkey: widgetkey,
-//         resultsid: resultsid
-//     };
-//     var xhr = new XMLHttpRequest();
-//     var url = apiUrl + '/api/ip2location' + formatParams(requestdata)
-//     xhr.open('GET', url, true); 
-//     xhr.setRequestHeader('Content-Type', 'application/json');
-//     xhr.onload = function () {
-
-//         if (xhr.status >= 200 && xhr.status < 400) {
-//             try {
-//                 var data = JSON.parse(xhr.responseText);
-//                 // Add markers to your Leaflet map here using the data
-//                 for (var i = 0; i < data.length; i++) {
-//                     item = data[i];
-//                     if (item.latitude == 0 && item.longitude == 0)
-//                     {
-//                         continue;
-//                     }
-//                     var row = table.insertRow();
-//                     var cell = row.insertCell();
-//                     cell.innerHTML = createTableRow(item);
-//                 }
-//             } catch (e) {
-//                 console.error('Error parsing JSON', e);
-//             }
-//         } else {
-//             console.error('Error fetching data');
-//         }
-//     }
-//     xhr.onerror = function () {
-//         console.error('Connection error');
-//     }
-//     xhr.send();
-//     span.setAttribute("style", "display: block; visibility: visible;");    
-// }
-
-
-// function removeItemFromLocalStorage(item_ip)
-// {
-//     var existngItems = JSON.parse(window.localStorage.getItem("ip2ldetails"));
-//     if (existngItems == null) {
-//         return;
-//     }
-//     for (var key in existngItems) {
-//         if (!existngItems.hasOwnProperty(key)) {
-//             continue;
-//         }
-//         if (key == item_ip) {
-//             delete existngItems[key];
-//             window.localStorage.setItem("ip2ldetails", JSON.stringify(existngItems));
-//             console.log("Item removed from local storage: " +  item_ip); // JSON.stringify(existngItems));
-//             recreateIp2LDetailsTable();
-//             return;
-//         }
-//     }
-// }
-
-
-// function saveItemToLocalStorage(item) {
-//     var existngItems = JSON.parse(window.localStorage.getItem("ip2ldetails"));
-//     if (existngItems == null) {
-//         existngItems = {};
-//     }
-//     var item_ip;
-//     if (item.direction == "in") {{
-//         item_ip = item.srcip}
-//     } else {{
-//         item_ip = item.dstip}};
-//     existngItems[item_ip] = item;
-//     window.localStorage.setItem("ip2ldetails", JSON.stringify(existngItems));
-//     console.log("Item saved to local storage: " + item_ip ); // JSON.stringify(existngItems));
-// }
-
-// function addIp2LDetails(item) {
-
-//     item.hitcount = 1;
-//     saveItemToLocalStorage(item);
-//     recreateIp2LDetailsTable();
-// }
-
-// function addIp2LItemToDetailsTable(detailedItem) {
-//     var table = document.getElementById("ip2l-table");
-//     var tbody = document.getElementById("ip2l-tbody");
-//     var row = tbody.insertRow();
-//     row.innerHTML = createTableRow(detailedItem);
-// }
-
-
-// for (let element of data) {
-//     let row = table.insertRow();
-//     act = action_icon(element);
-
-//     for (key in element) {
-//         let cell = row.insertCell();
-//         let text = document.createTextNode(element[key]);
-//         cell.appendChild(text);
-//     }
-// }
-
-// for (var i = 0; i < data.length; i++) {
-//     item = data[i];
-//     var item_ip;
-//     if (item.direction == "in") {{
-//         item_ip = item.srcip}
-//     } else {{
-//         item_ip = item.dstip}};
-//     }
-// }

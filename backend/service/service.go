@@ -116,7 +116,7 @@ func Start(args []string) {
 	// e.POST(widget.PostRoute, widget.PostHandler) // Post IP2Location API request
 
 	// WatchList endpoints
-	e.POST(routes.WatchList_PostItemRoute, routes.PostLogsHandler)
+	e.POST(routes.WatchList_PostItemRoute, routes.PostItemHandler)
 	e.GET(routes.WatchList_GetItemRoute, routes.GetItemHandler)
 	e.GET(routes.WatchList_GetRoute, routes.GetHandler)
 	e.DELETE(routes.WatchList_DeleteItemRoute, routes.DeleteHandler)
@@ -128,7 +128,10 @@ func Start(args []string) {
 	// Web content
 	if conf.EnableWeb {
 		util.Log("[service] Enabling web content: %s", conf.HomePage)
-		// e.GET(conf.HomePage, HomePageHandler)
+		e.GET("/ip2l/*", web.ContentHandler)
+		e.GET("/key", apikey.KeyHandler)
+		e.GET(conf.HomePage, web.ContentHandler)
+
 		// e = web.ServeEmeddedContent(e)
 		// e = web.ServeTempateFiles(e, "", "main-layout")
 		// e = web.ServeTempateFiles(e, "/ip2l", "ip2l-layout")

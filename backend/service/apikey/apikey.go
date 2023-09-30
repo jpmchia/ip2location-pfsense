@@ -27,6 +27,21 @@ func init() {
 	validKeys = make(map[string]ApiKey)
 }
 
+func KeyHandler(c echo.Context) error {
+
+	ipAddr := c.RealIP()
+
+	if ipAddr == "" {
+		util.Log("[apikeys] Unable to issue a key, no IP address found")
+		return c.JSON(400, "No IP address found")
+	}
+
+	apiKey := AddKey(ipAddr)
+	util.Log("[apikeys] Issued key: %s, for IP address: %s, Key expires at: %s", apiKey.Key, apiKey.IpAddress, apiKey.Expires.Format(time.RFC3339))
+
+	return c.JSON(200, apiKey)
+}
+
 func ApiKeyHandler(c echo.Context) error {
 	ipAddr := c.RealIP()
 	key := AddKey(ipAddr)

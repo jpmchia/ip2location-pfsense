@@ -48,7 +48,7 @@ func ServeEmbeddedErrorFiles(e *echo.Echo) *echo.Echo {
 
 func ServeErrorTemplate(e *echo.Echo) *echo.Echo {
 	t := &TemplateRenderer{
-		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
+		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.templ")),
 	}
 	util.LogDebug("[webserve] Error template: %v", t.templates.Name())
 	e.Renderer = t
@@ -82,7 +82,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	t := &TemplateRenderer{
-		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl")),
+		templates: template.Must(template.ParseFS(errorFiles, "error/error.html.templ")),
 	}
 
 	c.Echo().Renderer = t
