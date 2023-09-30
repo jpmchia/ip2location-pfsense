@@ -66,7 +66,8 @@ func ProcessLogEntries(logEntries FilterLog) int64 {
 		if ActiveWatchList.Contains(ip2Map.IP) {
 			util.LogDebug("[pfsense] IP address %v is on the watchlist", ip2Map.IP)
 			ip2Map.WatchList = true
-			ActiveWatchList.AddLogEntry(ip2Map.IP, *ip2Map)
+			err := ActiveWatchList.AddLogEntry(ip2Map.IP, *ip2Map)
+			util.HandleError(err, "[pfsense] Failed to add log entry to watchlist: %v", err)
 		}
 
 		ip2MapList = append(ip2MapList, *ip2Map)
