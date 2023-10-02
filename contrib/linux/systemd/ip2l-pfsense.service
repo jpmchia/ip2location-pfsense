@@ -1,0 +1,17 @@
+[Unit]
+Description=IP2Location Backend Service for pfSense
+Documentation=https://github.com/jpmchia/IP2Location-pfSense/wiki
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+Type=forking
+ExecStart=/opt/ip2l-pfSense/ip2location-pfsense service
+ExecStop=/opt/ip2l-pfSense/ip2location-pfsense kill
+ExecReload=/opt/ip2l-pfSense/ip2location-pfsense service
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

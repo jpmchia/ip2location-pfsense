@@ -20,9 +20,10 @@ let popupOpenTl: any, popupCloseTl: any;
 let dragged = false;
 
 initScene();
+
 window.addEventListener("resize", updateSize);
 
-function initScene(): void {
+export function initScene(): void {
     renderer = new THREE.WebGLRenderer({canvas: canvas3D as HTMLCanvasElement, alpha: true});
     renderer.setPixelRatio(2);
 
@@ -53,7 +54,7 @@ function initScene(): void {
         });
 }
 
-function createOrbitControls(): void {
+export function createOrbitControls(): void {
     controls = new OrbitControls(camera, canvas3D as HTMLElement);
     controls.enablePan = false;
     controls.enableZoom = false;
@@ -71,7 +72,7 @@ function createOrbitControls(): void {
     });
 }
 
-function createGlobe(): void {
+export function createGlobe(): void {
     const globeGeometry: THREE.IcosahedronGeometry = new THREE.IcosahedronGeometry(1, 22);  
     mapMaterial = new THREE.ShaderMaterial({
         vertexShader: document.getElementById("vertex-shader-map")?.textContent as string,
@@ -97,10 +98,11 @@ function createGlobe(): void {
 }
 
 
-
 // The JavaScript code has been translated to TypeScript. All variable types have been annotated, and some type casts have been added where necessary (e.g., casting `HTMLElement` to `HTMLCanvasElement`).
+var geometry: THREE.SphereGeometry;
+var material: THREE.MeshBasicMaterial;
 
-function createPointer(): void {
+export function createPointer(): void {
     const geometry: THREE.SphereGeometry = new THREE.SphereGeometry(.04, 16, 16);
     const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
         color: 0x00000,
@@ -111,7 +113,7 @@ function createPointer(): void {
     scene.add(pointer);
 }
 
-function updateOverlayGraphic(): void {
+export function updateOverlayGraphic(): void {
     if (!containerEl || !overlayCtx) return; // Add null checks to avoid errors when running the code outside of the browser.
     let activePointPosition: THREE.Vector3 = pointer.position.clone();
     activePointPosition.applyMatrix4(globe.matrixWorld);
@@ -158,7 +160,7 @@ function updateOverlayGraphic(): void {
     }
 }
 
-function addCanvasEvents(): void {
+export function addCanvasEvents(): void {
     containerEl?.addEventListener("mousemove", (e: MouseEvent) => {
         updateMousePosition(e.clientX, e.clientY);
     });
@@ -189,7 +191,7 @@ function addCanvasEvents(): void {
     }
 }
 
-function checkIntersects(): THREE.Intersection[] {
+export function checkIntersects(): THREE.Intersection[] {
     rayCaster.setFromCamera(mouse, camera);
     const intersects: THREE.Intersection[] = rayCaster.intersectObject(globeMesh);
     if (intersects.length) {
@@ -200,7 +202,7 @@ function checkIntersects(): THREE.Intersection[] {
     return intersects;
 }
 
-function render(): void {
+export function render(): void {
     if (mapMaterial.uniforms.u_time_since_click) {
         mapMaterial.uniforms.u_time_since_click.value = clock.getElapsedTime();
     }
@@ -229,20 +231,20 @@ function updateSize(): void {
 //  HELPERS
 
 // popup content
-function cartesianToLatLong(): string {
+export function cartesianToLatLong(): string {
     const pos: THREE.Vector3 = pointer.position;
     const lat: number = 90 - Math.acos(pos.y) * 180 / Math.PI;
     const lng: number = (270 + Math.atan2(pos.x, pos.z) * 180 / Math.PI) % 360 - 180;
     return formatCoordinate(lat, 'N', 'S') + ",&nbsp;" + formatCoordinate(lng, 'E', 'W');
 }
 
-function formatCoordinate(coordinate: number, positiveDirection: string, negativeDirection: string): string {
+export function formatCoordinate(coordinate: number, positiveDirection: string, negativeDirection: string): string {
     const direction: string = coordinate >= 0 ? positiveDirection : negativeDirection;
     return `${Math.abs(coordinate).toFixed(4)}°&nbsp${direction}`;
 }
 
 // popup show / hide logic
-function createPopupTimelines(): void {
+export function createPopupTimelines(): void {
     popupOpenTl = gsap.timeline({
         paused: true
     })
@@ -285,7 +287,7 @@ function createPopupTimelines(): void {
         }, 0);
 }
 
-function showPopupAnimation(lifted: boolean): void {
+export function showPopupAnimation(lifted: boolean): void {
     if (lifted) {
         let positionLifted: THREE.Vector3 = pointer.position.clone();
         positionLifted.multiplyScalar(1.3);
@@ -302,7 +304,7 @@ function showPopupAnimation(lifted: boolean): void {
 }
 
 // overlay (line between pointer and popup)
-function drawPopupConnector(startX: number, startY: number, midX: number, midY: number, endX: number, endY: number): void {
+export function drawPopupConnector(startX: number, startY: number, midX: number, midY: number, endX: number, endY: number): void {
     if (!overlayCtx) return; // Add null checks to avoid errors when running the code outside of the browser.
     overlayCtx.strokeStyle = "#000000";
     overlayCtx.lineWidth = 3;
@@ -314,4 +316,127 @@ function drawPopupConnector(startX: number, startY: number, midX: number, midY: 
     overlayCtx.stroke();
 }
 
+
+export function createIpLocationPoint(color: number, label: string, lat: number, long: number): void {
+
+    const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff000,
+        transparent: true,
+        opacity: 0
+    });
+    
+}
+
+export function placePointOnPlanet(label: string, lat: number, lon: number, radius: number) {
+    const geometryObject = new THREE.SphereGeometry(0.04, 16, 16);
+    const materialObject = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+    const object = new THREE.Mesh(geometryObject, materialObject);
+    scene.add(object);
+    object.name = label;
+
+    var latRad = lat * (Math.PI / 180);
+    var latRad = lat * (Math.PI / 180);
+    var lonRad = -lon * (Math.PI / 180);
+
+    object.position.set(
+        Math.cos(latRad) * Math.cos(lonRad) * radius,
+        Math.sin(latRad) * radius,
+        Math.cos(latRad) * Math.sin(lonRad) * radius
+    );
+
+    console.log("x je : " + Math.cos(latRad) * Math.cos(lonRad) * radius);
+    console.log("y je : " + Math.sin(latRad) * radius);
+    console.log("z je : " + Math.cos(latRad) * Math.sin(lonRad) * radius);
+
+    object.rotation.set(0.0, -lonRad, latRad - Math.PI * 0.5);
+}
+
+let xyz = new THREE.Vector3();
+
+export function radialToDecart(lat, lon, radius) {
+    var latRad = lat * (Math.PI / 180);
+    var lonRad = -lon * (Math.PI / 180);
+    xyz.set(
+        Math.cos(latRad) * Math.cos(lonRad) * radius,
+        Math.sin(latRad) * radius,
+        Math.cos(latRad) * Math.sin(lonRad) * radius
+    );
+    return xyz;
+}
+
+
+export function makeCurve(name1, lat1, lon1, name2, lat2, lon2) {
+
+    let x, y, z;
+    let points = [];
+    let v1 = new THREE.Vector3();
+    let v2 = new THREE.Vector3();
+
+    v1.set(radialToDecart(lat1, lon1, 1).x, radialToDecart(lat1, lon1, 1).y, radialToDecart(lat1, lon1, 1).z);
+    v2.set(radialToDecart(lat2, lon2, 1).x, radialToDecart(lat2, lon2, 1).y, radialToDecart(lat2, lon2, 1).z);
+
+    for (let i = 0; i <= 20; i++) {
+        let p = new THREE.Vector3().lerpVectors(v1, v2, i / 20);
+        p.normalize();
+        p.multiplyScalar(1 + 0.1 * Math.sin(Math.PI * i / 20));
+        points.push(p);
+    }
+
+    let path = new THREE.CatmullRomCurve3(points);
+
+    const geometryCurve = new THREE.TubeGeometry(path, 40, 0.003, 8, false);
+    const materialCurve = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    //const materialCurve = materialShader;
+    
+    const line = new THREE.Mesh(geometryCurve, materialCurve);
+    scene.add(line);
+}
+
+// var lat = 5.063333;
+// var lon = 3.466670;
+// placePointOnPlanet("Test, 0, 0", lat, lon, 1);
+// placePointOnPlanet("Test, 0, 0", -3.781401E+01, 	1.449632E+02-180, 1 );
+// placePointOnPlanet("Test, 0, 0", 	-6.208678E+00 - 180, 	1.068455E+02, 1);
+
+(window as any).placePointOnPlanet = placePointOnPlanet;
+(window as any).makeCurve = makeCurve;
+(window as any).radialToDecart = radialToDecart;
+(window as any).createIpLocationPoint = createIpLocationPoint;
+(window as any).createPointer = createPointer;
+(window as any).createGlobe = createGlobe;
+(window as any).initScene = initScene;
+(window as any).render = render;
+(window as any).updateOverlayGraphic = updateOverlayGraphic;
+(window as any).updateSize = updateSize;
+(window as any).addCanvasEvents = addCanvasEvents;
+(window as any).checkIntersects = checkIntersects;
+(window as any).drawPopupConnector = drawPopupConnector;
+(window as any).cartesianToLatLong = cartesianToLatLong;
+(window as any).formatCoordinate = formatCoordinate;
+(window as any).createPopupTimelines = createPopupTimelines;
+(window as any).showPopupAnimation = showPopupAnimation;
+(window as any).popupOpenTl = popupOpenTl;
+(window as any).popupCloseTl = popupCloseTl;
+(window as any).popupVisible = popupVisible;
+(window as any).earthTexture = earthTexture;
+(window as any).mapMaterial = mapMaterial;
+(window as any).popupEl = popupEl;
+(window as any).overlayCtx = overlayCtx;
+(window as any).coordinates2D = coordinates2D;
+(window as any).pointerPos = pointerPos;
+(window as any).clock = clock;
+(window as any).mouse = mouse;
+(window as any).pointer = pointer;
+(window as any).globe = globe;
+(window as any).globeMesh = globeMesh;
+(window as any).dragged = dragged;
+(window as any).controls = controls;
+(window as any).camera = camera;
+(window as any).scene = scene;
+(window as any).renderer = renderer;
+(window as any).containerEl = containerEl;
+(window as any).canvas3D = canvas3D;
+(window as any).canvas2D = canvas2D;
+(window as any).initScene = initScene;
 

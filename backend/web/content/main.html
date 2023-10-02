@@ -2,8 +2,9 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>IP2Location.io API service</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>IP2Location.io backend service</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <script type="module" src="./js/bundle.js"></script>
 </head>
 <body>
 
@@ -28,6 +29,8 @@
         </div>
     </div>
 </div>
+
+<script>var exports = {};</script>
 
 <script type="x-shader/x-fragment" id="fragment-shader-map">
     uniform sampler2D u_map_tex;
@@ -82,6 +85,11 @@
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
     }
 </script>
-<script type="module" src="js/bundle.js"></script>
-</body>
-</html>
+<script>
+
+Window.onload = function() {
+    console.log("Window loaded");
+    
+    placePointOnPlanet("Test, 0, 0", 	-6.208678E+00 - 180, 	1.068455E+02, 1);
+}
+
