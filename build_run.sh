@@ -7,7 +7,7 @@ mkdir -p ./local
 
 # Copy the config file if it doesn't exist
 if [ ! -f ./local/config.yaml ]; then
-    cp -f ./config.yaml.example ./local/config.yaml
+    cp -f ./contrib/config.yaml.example ./local/config.yaml
 fi
 
 # Copy the SSL files if they don't exist
