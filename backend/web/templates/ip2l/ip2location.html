@@ -2,31 +2,31 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>{{.Title}}</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="bundle.js"></script>
+  <title>IP2Location Backend Service for pfSense</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
 <div class="page">
-    <div class="parent">
-        <div class="header">
-            
+	 <div class="title"></div>
+    <div class="globe-wrapper">
+        <canvas id="globe-3d"></canvas>
+        <canvas id="globe-2d-overlay"></canvas>
+        <div id="globe-popup-overlay">
+            <div class="globe-popup"></div>
         </div>
-        <div class="left"> 
-
-        </div>
-        <div class="globe-wrapper"> 
-            <canvas id="globe-3d"></canvas>
-            <canvas id="globe-2d-overlay"></canvas>
-            <div id="globe-popup-overlay">
-                <div class="globe-popup"></div>
+    </div>
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <p>IP2Location Backend Service for pfSense</p>
+                <p>Powered by <a href="https://ip2location.io/" target="_blank">IP2Location.io</a></p>
+            </div>
+            <div class="footer-links">
+                <a href="https://codepen.io/ksenia-k/pen/NWERpmb" target="_blank">3D Globe Three.js with location pointer by Ksenia Kondrashova</a>
             </div>
         </div>
-        <div class="bottom"> </div>
-        <div class="footer"> </div>
-        </div>
-
+    </div>
 </div>
 
 <script type="x-shader/x-fragment" id="fragment-shader-map">
@@ -82,6 +82,6 @@
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
     }
 </script>
-<script type="module" src="./bundle.js"></script>
+<script src='https://unpkg.com/gsap@3/dist/gsap.min.js'></script><script type="module" src="./bundle.js"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ The dashboard widget and backend service are designed for use with the IP2Locati
 * Live IP geolocation information retrieved from the IP2Location.io API
 * Map view of IP locations provided by Leaflet.js with sumamry of IP information
 * Watch list of IP addresses to monitor and track the number of hits
+* Storage of the watch list in the backend service
 * Drill-down into details of the IP address  information provided by IP2Location.io
 * Fully functional with a free IP2Location.io API account
 * Support for more granular IP information available with paid IP2Location.io API accounts
@@ -23,14 +24,14 @@ The dashboard widget and backend service are designed for use with the IP2Locati
 * Support for SSL / TLS and backend secured with configurable API keys
 
 ### WIP features (part implemented)
-* Backend service standalone mode, allowing monitoring of host's network traffic without pfSense
+* Backend service standalone mode, allowing monitoring of service's host network traffic without pfSense
 * Configurable map tile providers for Leaflet.js
-* Additional UI for cache controls, monitoring and hit rates and configruation of the backend
-* Transfer storage of Watch list from the local browser storage to the backend service 
+* Additional UI for cache monitoring and hit rates, plus configuration of limits
+* Support for multiple pfSense hosts
 
+<hr>
 
 <img src="https://github.com/jpmchia/IP2Location-pfSense/blob/e1156d594e6e0e71c3cab91124f874811b4b3029/contrib/screenshots/Screenshot1.png?raw=true" width="95%">
-
 
 ## Getting started
 

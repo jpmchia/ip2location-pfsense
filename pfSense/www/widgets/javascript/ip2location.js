@@ -1,4 +1,37 @@
 
+function getComputedStyleLuminance(element) {
+    const rgb = window.getComputedStyle(element).backgroundColor.match(/\d+/g);
+    if (!rgb || rgb.length < 3) return 0;
+    const [r, g, b] = rgb.map(num => {
+        const channel = parseInt(num) / 255;
+        return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+    });
+    // Compute the relative luminance
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function toggleTheme() {
+    if (localStorage.getItem('theme') === 'theme-dark'){
+        setTheme('theme-light');
+    } else {
+        setTheme('theme-dark');
+    }
+ }
+
+function setTheme(themeName) {
+    localStorage.setItem('theme', themeName);
+    document.documentElement.className = themeName;
+}
+
+(function () {
+    if (localStorage.getItem('theme') === 'theme-dark') {
+        setTheme('theme-dark');
+    } else {
+        setTheme('theme-light');
+    }
+})();
+
+
 L.Control.Watermark = L.Control.extend({
     onAdd: function(map) {
         var img = L.DomUtil.create('img');
@@ -67,14 +100,12 @@ function fetchMapData(widgetkey, resultsid) {
                         case "in":
                             switch (item.act) {
                                 case "pass":
-                                    //allowInLayer.addLayer(marker);
                                     marker.addTo(allowInLayer);
                                     item_ip = item.srcip;
                                     break;
                                 case "block":
                                 case "reject":
                                 default:
-                                    //blockInLayer.addLayer(marker);
                                     marker.addTo(blockInLayer);
                                     item_ip = item.srcip;
                                     break;
@@ -83,24 +114,19 @@ function fetchMapData(widgetkey, resultsid) {
                         case "out":
                             switch (item.act) {
                                 case "pass":
-                                    //allowOutLayer.addLayer(marker);
                                     marker.addTo(allowOutLayer);
                                     item_ip = item.dstip;
                                     break;
                                 case "block":
                                 case "reject":
                                 default:
-                                    //blockOutLayer.addLayer(marker);
                                     marker.addTo(blockOutLayer);
                                     item_ip = item.dstip;
                                     break;
                             }
                             break;
                     }
-
-                    //checkUpdateTrackedItems(item_ip);
                 }
-
                 
                 var baseMaps = {
                     "OpenStreetMap" : openStreetMap
@@ -282,9 +308,8 @@ function createTableRow1(item) {
     // href="easyrule.php?action=pass&amp;int=wg1&amp;proto=tcp&amp;src=[2001:da8:d00a:2::]&amp;dst=[2a0e:97c0:5c1::]&amp;dstport=19128&amp;ipproto=inet6"
     // title="" data-original-title="EasyRule: Pass this traffic">
 
-    var row1 = `<td rowspan="2" style="vertical-align: middle;">${act_icon}</td>
+    var row1 = `<td rowspan="2" style="vertical-align: middle;">${act_icon}<br/>${item.interface}</td>
         <td style="white-space: nowrap;">${item.time}</td>
-        <td>${item.interface}</td>
         <td>${item.ip}</td>
         <td id="ip2l_status">${item.hits}</td>
         <td><a href="${rule_link}" title="EasyRule: Add a rule to Block / Unblock this IP."><i class="${rule_icon}" style="cursor: pointer;"></i></a></td>
@@ -296,7 +321,7 @@ function createTableRow1(item) {
 function createTableRow2(item) { 
     var row2 = `
     <td style="white-space: nowrap;">${item.lastSeen}</td>
-    <td colspan="3">${item.city}, ${item.country}</td>
+    <td colspan="2">${item.city}, ${item.country}</td>
     <td colspan="1"><i class="fa fa-chevron-right" style="cursor: pointer;" onclick="javascript:showIP2Watchlist('${item.ip}');" title="View watch list detail."></i></td>
     <td><i class="fa fa-times text-danger" style="cursor: pointer;" onclick="javascript:removeItem('${item.ip}');" title="Remove from watch list."></td>`
     return row2;
@@ -317,10 +342,11 @@ function removeItem(item_ip) {
 }
 
 function addItemToWatchlist(item) {
-    if (item.direction == "in") {{
-        item_ip = item.srcip}
-    } else {{
-        item_ip = item.dstip}};
+    if (item.direction == "in") {
+        item_ip = item.srcip
+    } else {
+        item_ip = item.dstip;
+    }
 
     var url = apiUrl + '/api/watch?ip=' + item_ip;
     var post_data =  JSON.stringify(item);
@@ -373,35 +399,63 @@ function recreateWatchlistTable(data) {
     table.setAttribute("style", "display: table; visibility: visible;");
 }
 
+function getApiKey() {
+    var xhr = new XMLHttpRequest();
+    var url = htmlUrl + "/api/key";
+    fetch(url, {
+        headers: { Authorization: `Bearer ${ip2l_token}`},
+        method: 'GET'
+    }).then(response => response.json())
+    .then(data => {
+        console.log(data);
+        apikey = data.Key;
+        return apikey;
+    });
+}
+
 function showIP2LDetail(item_ip) {
-    var ip2detailUrl = htmlUrl + "/ip2ldetails.html?ip=" + item_ip + "'";
+    
+    bodyLuminance = getComputedStyleLuminance(document.body);
+    if (bodyLuminance > 0.5) {
+        current_theme = "theme-dark"
+    } else {
+        current_theme = "theme-light";
+    }
+    
+    apikey = getApiKey();
+    var ip2detailUrl = htmlUrl + "/ip2l?key=" + apikey + "&a=ip2l&ip=" + item_ip + "&theme=" + current_theme;
         
     window.winboxIp2LDetails = new WinBox('IP2Location details', {
         top: 60,
         right: 5,
         bottom: 15,
         left: 5,
+        x: "center",
+        y: "center",
         width: '800px',
         height: '600px',
         url: ip2detailUrl,
+        class: "no-full"
     });
-       
     console.log("showIP2LDetail: " + item_ip + " - " + ip2detailUrl);
 }
 
 function showIP2Watchlist(item_ip) {
-    var ip2detailUrl = htmlUrl + "/ip2location.html?ip=" + item_ip + "'";
-        
-    window.winboxIp2LDetails = new WinBox('Watchlist details', {
+    apikey = getApiKey();
+    var ip2locationUrl = htmlUrl + "/ip2l?key=" + apikey + "&a=watchlist&ip=" + item_ip + "&theme=" + current_theme;
+            
+    window.winboxIp2Location = new WinBox('Watchlist details', {
         top: 60,
         right: 5,
         bottom: 15,
         left: 5,
-        width: '800px',
-        height: '600px',
-        url: ip2detailUrl,
+        x: "center",
+        y: "center",
+        width: "800px",
+        height: "600px",       
+        url: ip2locationUrl,
+        class: "no-full"
     });
-       
-    console.log("showIP2LDetail: " + item_ip + " - " + ip2detailUrl);
+    console.log("showIP2Location: " + item_ip + " - " + ip2locationUrl);
 }
 

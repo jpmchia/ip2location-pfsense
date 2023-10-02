@@ -1,3 +1,200 @@
+@font-face {
+    font-family: 'Inter var';
+    font-weight: 100 900;
+    font-display: swap;
+    font-style: normal;
+    font-named-instance: 'Regular';
+    src: url("/fonts/Inter-roman.var.woff2?v=3.19") format("woff2");
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-weight: 100 900;
+    font-display: swap;
+    font-style: oblique 0deg 10deg;
+    src: url("/fonts/Inter.var.woff2?v=3.19") format("woff2");
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/fonts/Inter-SemiBold.woff2?v=3.19") format("woff2"),
+        url("/fonts/Inter-SemiBold.woff?v=3.19") format("woff");
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/fonts/Inter-Bold.woff2?v=3.19") format("woff2"),
+        url("/fonts/Inter-Bold.woff?v=3.19") format("woff");
+}
+
+.theme-light {
+    --colour-primary: #4c4c47;
+    --colour-secondary: #9999a1;
+    --colour-accent: #4595d6;
+    --font-colour: #2d2d2a;
+    --background-colour: rgba(50,50,50,0.5);
+    --sidenav-colour: #9999a1;
+    --sidenav-highlight: #e6e6e9;
+    --sidenav-background: transparent;
+    --sidenav-hover-bg: rgba(51,51,51,0.4);
+    --thin-border: 1px solid rgba(225, 225, 225, 0.325);
+    --fill-border: 1px solid rgba(225, 225, 225, 0.675);
+    --full-border: 1px solid rgba(245, 245, 245, 1);
+    --card-background-colour: transparent;
+}
+
+.theme-dark {
+    --colour-primary: #e6e6e9;
+    --colour-secondary: #9999a1;
+    --colour-accent: #6db9f7;
+    --font-colour: #f4f4f6;
+    --background-colour: rgba(50,50,50,0.5);
+    --sidenav-colour: #919191;
+    --sidenav-background: transparent;
+    --sidenav-highlight: #f0f0f0;
+    --sidenav-hover-bg: rgba(251,251,251,0.4);
+    --thin-border: 1px solid rgba(125, 125, 125, 0.325);
+    --fill-border: 1px solid rgba(125, 125, 125, 0.675);
+    --full-border: 1px solid rgba(125, 125, 125, 1);
+    --card-background-colour: transparent;
+}
+
+:root {
+    --font-colour: var(--font-colour);
+    --font-family: "Inter var", "Inter", 'Open Sans', 'Ubuntu', 'Arial';
+    --border-radius: 1.25rem;
+    --sidenav-slimwidth: 3.5rem;
+    --sidenav-fullwidth: 10rem;
+    --sidenav-height: calc(100vh - 3rem - 3.5rem);
+    --title-height: 3rem;
+    --footer-height: 3.5rem;
+    --colour-primary: #4c4c47;
+    --colour-secondary: #9999a1;
+    --colour-accent: #4595d6;
+    --font-colour: #2d2d2a;
+    --font-colour-darker: #1d1d1a;
+    --background-colour: rgba(50,50,50,0.5);
+    --sidenav-colour: #9999a1;
+    --sidenav-highlight: #e6e6e9;
+    --sidenav-background: transparent;
+    --sidenav-hover-bg: rgba(51,51,51,0.4);
+    --thin-border: 1px solid rgba(225, 225, 225, 0.325);
+    --fill-border: 1px solid rgba(225, 225, 225, 0.675);
+    --full-border: 1px solid rgba(245, 245, 245, 1);
+    --card-background-colour: transparent;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--font-family);
+    color: var(--font-colour);
+    font-size: 1rem;
+    background-color: transparent;
+}
+
+a,
+a:hover,
+a:focus {
+    color: var(--colour-accent);
+    text-decoration: none;
+}
+
+a:visited {
+    color: var(--colour-secondary);
+    text-decoration: none;
+}
+
+.page {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    align-items: stretch;
+}
+
+
+.title {
+    position: fixed;
+    background-color: #17ed90;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--title-height);
+    text-align: center;
+}
+
+.footer {
+    position: fixed;
+    background-color: transparent;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--footer-height);
+    line-height: 0.3;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: right;
+}
+
+.globe-wrapper {
+    flex: 0 0 50%;
+    display: block;
+    position: absolute;
+    top: 5rem;
+    right: 2.5rem;
+}
+
+#globe {
+    width: 50%;
+    height: 50%;
+}
+
+#globe-3d,
+#globe-2d-overlay,
+#globe-popup-overlay,
+.globe-popup {
+    display: block;
+    position: absolute;
+}
+
+#globe-2d-overlay,
+#globe-popup-overlay {
+    pointer-events: none;
+}
+
+.globe-popup {
+    top: 0;
+    left: 0;
+    background-color: transparent;
+    opacity: 0;
+    color: var(--colour-accent);
+    padding: 5px 10px;
+    font-size: 15px;
+    border-radius: 3px;
+    filter: drop-shadow(0px 0px 3px #555555);
+}
+
+
+.globe-container {
+    top: 0;
+    left: 0;
+    background-color: transparent;
+    opacity: 0;
+    color: var(--colour-primary);
+    font-family: sans-serif;
+    padding: 5px 10px;
+    font-size: 15px;
+    border-radius: 3px;
+    filter: drop-shadow(0px 0px 3px #555555);
+}
+
 .container {
     position: absolute;
     width: 100vw;
@@ -6,12 +203,6 @@
     left: 0;
 }
 
-.main {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
 
 .htf404 {
     color: #fefefe;
@@ -38,55 +229,10 @@
 }
 
 body {
-    background-color: #f1f1f1;
+    background-color: transparent;
     overflow: hidden;
     width: 100%;
     height: 100vh;
-}
-
-body {
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-}
-
-.page {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.title {
-	 position: fixed;
-	 bottom: 10%;
-	 left: 0;
-	 width: 100%;
-	 text-align: center;
-	 font-family: sans-serif;
-}
-
-#globe-3d, #globe-2d-overlay, #globe-popup-overlay, .globe-popup {
-    display: block;
-    position: absolute;
-}
-
-#globe-2d-overlay, #globe-popup-overlay {
-    pointer-events: none;
-}
-
-.globe-container {
-    top: 0;
-    left: 0;
-    background-color: white;
-    opacity: 0;
-    color: #111;
-    font-family: sans-serif;
-    padding: 5px 10px;
-    font-size: 15px;
-    border-radius: 3px;
-    filter: drop-shadow(0px 0px 3px #555555);
 }
 
 .parent {
@@ -95,16 +241,275 @@ body {
     grid-template-rows: repeat(5, 1fr);
     grid-column-gap: 0px;
     grid-row-gap: 0px;
-    }
-    
-    .header { grid-area: 1 / 1 / 2 / 6; }
-    .left { grid-area: 2 / 1 / 4 / 4; }
-    .globe-wrapper { grid-area: 2 / 4 / 4 / 6; }
-    .bottom { grid-area: 4 / 1 / 5 / 6; }
-    .footer { grid-area: 5 / 1 / 6 / 6; }
+}
 
-    .header {
-        height: 20vh;
-        width: 100vw;
-        background-color: #f1f1f1;
-    }
+.footer-text,
+.footer-links {
+    font-size: 0.725rem;
+    font-weight: 500;
+    text-align: right;
+    margin-right: 1rem;
+    margin-bottom: 0;
+}
+
+
+.fa,
+.fa-brands,
+.fa-classic,
+.fa-regular,
+.fa-sharp,
+.fa-solid,
+.fab,
+.far,
+.fas {
+  -moz-osx-font-smoothing:grayscale;
+  -webkit-font-smoothing:antialiased;
+  display:var(--fa-display,inline-block);
+  font-style:normal;
+  font-variant:normal;
+  /*! line-height:1; */text-rendering:auto
+}
+
+
+.fa {
+    position: relative;
+    display: table-cell;
+    width: 3rem;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1em;
+    line-height: 2.25;
+}
+
+.sidenav {
+    float: left;
+    flex: 0 0 3rem; 
+    transition: flex-basis 0.3s;
+    background: var(--sidenav-background);
+    height: 100%;
+}
+
+.main {
+    flex: 1;
+    transition: width 0.3s;
+}
+
+.main-menu:hover,
+nav.main-menu.expanded {
+    flex-basis: var(--sidenav-fullwidth);
+    overflow: visible;
+}
+
+
+p:hover,
+p:focus {
+    text-decoration: none;
+}
+
+.no-touch 
+.scrollable.hover {
+    overflow-y: hidden;
+}
+    
+.no-touch 
+.scrollable.hover:hover {
+    overflow-y: auto;
+    overflow: visible;
+}
+
+
+nav {
+    -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+}
+    
+nav ul,
+nav li {
+    outline: 0;
+    margin: 0;
+    padding: 0;
+}
+
+nav.main-menu li.active > p,
+.main-menu li:hover > p,
+.no-touch {
+    color: var(--colour-accent);
+    background-color: var(--sidenav-hover-bg);
+}
+
+.main-menu {
+    background: transparent;
+    position: absolute;
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    width: 2.9rem;
+    line-height: 2.25rem;
+    overflow: hidden;
+    -webkit-transition: width .05s linear;
+    transition: width .05s linear;
+    -webkit-transform: translateZ(0) scale(1,1);
+    z-index: 1000;
+    
+}
+
+.main-menu > ul {
+    margin: 0.75rem 0;
+    line-height: 2.25rem;
+    top: var(--title-height);
+    position: fixed;
+}
+
+.main-menu li {
+    position: relative;
+    display: inline-table;
+    width: var(--sidenav-fullwidth);
+    cursor: pointer;
+    margin: 1rem 0;
+    line-height: 2.25rem;    
+}
+
+.main-menu li > p {
+    position: relative;
+    display: table-row;
+    border-collapse: collapse;
+    border-spacing: 0;
+    color: var(--colour-secondary);
+    -webkit-transform:translateZ(0) scale(1,1);
+    -webkit-transition: all .1s linear;
+    transition: all .1s linear;
+}
+
+.main-menu .nav-icon {
+    position: relative;
+    display: table-cell;
+    width: var(--sidenav-slimwidth);
+    height: 2.25rem;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1.5rem;
+    color: var(--colour-primary);
+}
+    
+.main-menu .nav-text {
+    position: relative;
+    display: table-cell;
+    height: 2.25rem;
+    vertical-align: middle;
+    width: var(--sidenav-fullwidth);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+
+
+.header {
+    position: fixed;
+    background-color: transparent;
+    height: 3rem;
+    width: 100%;
+    text-align: left;
+    padding-left: 3rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 0.5;
+    color: var(--sidenav-highlight);
+}
+
+.container {
+    display: flex;
+    align-items: stretch; /* This ensures the sidebar and content are of equal height */
+}
+
+.sidebar {
+    flex: 0 0 3rem; /* This means the sidebar starts at 50px wide and doesn't grow or shrink */
+    transition: flex-basis 0.3s; /* This animates the width change */
+    top: var(--title-height);
+    height: calc(100% - var(--title-height) - var(--footer-height));
+}
+
+.main-content {
+    flex: 1; /* This means the content div will take up the rest of the space */
+    transition: width 0.3s; /* This animates the width change */
+    top: var(--title-height);
+    height: calc(100% - var(--title-height));
+    width: 100%;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+    top: var(--title-height);
+    position: relative;
+    left: 0;   
+    border-radius: var(--border-radius) 0 0 0;
+    border: var(--thin-border);
+    background: rgba(240,240,240,0.4);
+    padding: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.content-inner {
+    left: 0;
+    position: relative;
+    width: calc(100% - 50dvw);
+}
+
+.sidebar:hover {
+    flex-basis: var(--sidenav-fullwidth); /* This sets the sidebar width to 150px on hover */
+}
+
+
+.card {
+    background-color:var(--card-background-colour);
+    border-radius: var(--border-radius);
+    border: var(--thin-border);
+    padding: 0.5rem 0;
+    color: var(--font-colour);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-bottom: 0.75rem;
+    backdrop-filter: blur(10px);
+    border: var(--thin-border);
+    margin-bottom: 1rem;
+    overflow: scroll;
+    display: block;
+}
+
+.card-header {
+    color: var(--font-colour);
+    font-weight: 700;
+    font-size: 1rem;
+    border-bottom: var(--thin-border);
+    color: var(--font-colour);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+
+.ip2l-table table {
+    padding: 0.25rem;
+}
+
+.ip2l-table th {
+    padding: 0.25rem;
+    font-size: 0.6rem;
+    font-weight: 400;
+    color: var(--font-colour-darker);
+    text-align: right;
+    padding-right: 1rem;
+}
+
+ .ip2l-table td {
+    padding: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--font-colour);
+}
+

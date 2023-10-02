@@ -1,3 +1,45 @@
+
+
+.theme-light {
+    --background-color:  rgba(250, 250, 250, 0.3);
+	--header-bg-colour: rgba(66, 66, 66, 0.5);
+}
+
+.theme-dark {
+    --background-color:  rgba(41, 41, 44, 0.6);
+	--header-bg-colour: rgba(41, 41, 44, 0.6);
+}
+
+.theme-light {
+    --colour-primary: #4c4c47;
+    --colour-secondary: #9999a1;
+    --colour-accent: #4595d6;
+    --font-colour: #2d2d2a;
+    --background-colour: #f4f4f6;
+    --sidenav-colour: #9999a1;
+    --sidenav-highlight: #e6e6e9;
+    --sidenav-background: transparent;
+    --sidenav-hover-bg: rgba(51,51,51,0.4);
+    --thin-border: 1px solid rgba(225, 225, 225, 0.325);
+    --fill-border: 1px solid rgba(225, 225, 225, 0.675);
+    --full-border: 1px solid rgba(245, 245, 245, 1);
+}
+
+.theme-dark {
+    --colour-primary: #e6e6e9;
+    --colour-secondary: #9999a1;
+    --colour-accent: #6db9f7;
+    --font-colour: #f4f4f6;
+    --background-colour: rgba(41, 41, 44, 0.6);
+    --sidenav-colour: #919191;
+    --sidenav-background: transparent;
+    --sidenav-highlight: #f0f0f0;
+    --sidenav-hover-bg: rgba(251,251,251,0.4);
+    --thin-border: 1px solid rgba(125, 125, 125, 0.325);
+    --fill-border: 1px solid rgba(125, 125, 125, 0.675);
+    --full-border: 1px solid rgba(125, 125, 125, 1);
+}
+
 /* required styles */
 
 .leaflet-pane,
@@ -699,14 +741,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	position: fixed;
 	left: 0;
 	top: 0;
-	background: rgb(41, 41, 44, 0.8);
-	/* box-shadow: 0 14px 28px rgba(0, 0, 0, .25), 0 10px 10px rgba(0, 0, 0, .22); */
+	box-shadow: 0 14px 28px rgba(0, 0, 0, .25), 0 10px 10px rgba(0, 0, 0, .22);
 	transition: width .3s, height .3s, left .3s, top .3s;
 	transition-timing-function: cubic-bezier(.3, 1, .3, 1);
 	contain: layout size;
 	text-align: left;
 	touch-action: none;
-	box-shadow: -1.5px -1.5px 2px -2px var(--white), 5px 5px 30px rgb(0, 0, 0, 0.2);
+	box-shadow: -1.5px -1.5px 2px -2px #ffffff, 5px 5px 30px rgb(0, 0, 0, 0.2);
 	border: 0.5px solid;
 	border-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.3) transparent rgba(255, 255, 255, 0.3);
 	border-radius: 1.25rem;
@@ -728,13 +769,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	top: 0;
 	width: 100%;
 	height: 40px;
-	line-height: 1.6;
-	color: #fff;
+	line-height: 1;
+	color: var(--font-color);
 	overflow: hidden;
 	padding: 0.25rem;
 	z-index: 1;
 	border-radius: 1.25rem 1.25rem 0 0;
 	border-bottom: 1px solid rgba(155, 155, 155, 0.1);
+	background-color: var(--header-bg-colour);
+	padding-top: 1rem;
 }
 
 .wb-body {
@@ -769,8 +812,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	text-overflow: ellipsis;
 	font-family: "Inter", sans-serif;
 	font-weight: 600;
-	font-size: 1.1rem;
+	font-size: 1.5rem;
 	text-shadow: 1px 1px 1px rgba(90, 90, 90, 0.9);
+	color: var(--font-color);
 }
 
 .wb-icon {
@@ -1012,6 +1056,16 @@ body.wb-lock .winbox {
 	}
 }
 
+.wb-header {
+	display: inline-block;
+	vertical-align: middle;
+	padding-top: 1rem;
+	line-height: 1;
+	font-size: 1.5rem;
+}
+  
+
+/* 
 .winbox.ip2l {
 
 	border-radius: 1.25rem 1.25rem 1.25rem 1.25rem;
@@ -1080,4 +1134,4 @@ body.wb-lock .winbox {
 	background: 0 0
 }
 
-
+ */

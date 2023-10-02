@@ -6219,7 +6219,7 @@ function initScene() {
     clock = new THREE.Clock();
     createOrbitControls();
     popupVisible = false;
-    new THREE.TextureLoader().load("https://ksenia-k.com/img/earth-map-colored.png", function (mapTex) {
+    new THREE.TextureLoader().load("/img/earth-map-colour.png", function (mapTex) {
         earthTexture = mapTex;
         earthTexture.repeat.set(1, 1);
         createGlobe();

@@ -6,7 +6,8 @@ build
 target
 WIP
 local
-
+update_pfsense.log*
+package.log*
 ```
 # Binaries for programs and plugins
 *.exe

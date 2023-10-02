@@ -75,7 +75,6 @@ func Start(args []string) {
 	e.Use(middleware.Recover())
 
 	// CORS
-
 	hosts := conf.AllowHosts
 	if conf.AllowHosts[0] != "*" {
 		if len(conf.AllowHosts) > 1 {
@@ -100,8 +99,6 @@ func Start(args []string) {
 		"/": "/main.html",
 	}))
 
-	// e = web.ServeEmbeddedFiles(e)
-
 	// Routes
 	// Handler
 	e.GET(routes.HealthCheck_Route, routes.HealthCheck_Handler) // Health Check
@@ -111,33 +108,23 @@ func Start(args []string) {
 	e.POST(routes.FilterLogs_PostRoute, routes.PostLogsHandler) // Ingest pfSense Filter Logs
 	e.GET(routes.FilterLogs_GetRoute, routes.GetResultsHandler) // Get IP2Location results
 
-	// pfSense widget endpoints
-	// e.GET(widget.GetRoute, widget.GetHandler)    // Get IP2Location results for the GeoMap
-	// e.POST(widget.PostRoute, widget.PostHandler) // Post IP2Location API request
-
 	// WatchList endpoints
 	e.POST(routes.WatchList_PostItemRoute, routes.PostItemHandler)
 	e.GET(routes.WatchList_GetItemRoute, routes.GetItemHandler)
 	e.GET(routes.WatchList_GetRoute, routes.GetHandler)
 	e.DELETE(routes.WatchList_DeleteItemRoute, routes.DeleteHandler)
 
-	// e.GET("/", web.HomeHandler)
-	// e.GET("/test.html", web.HomeHandler)
-	// e.GET("/index.html", web.HomeHandler)
-
 	// Web content
 	if conf.EnableWeb {
 		util.Log("[service] Enabling web content: %s", conf.HomePage)
-		e.GET("/ip2l/*", web.ContentHandler)
-		e.GET("/key", apikey.KeyHandler)
+		e.GET("/ip2l", web.ContentHandler)
 		e.GET(conf.HomePage, web.ContentHandler)
-
-		// e = web.ServeEmeddedContent(e)
-		// e = web.ServeTempateFiles(e, "", "main-layout")
-		// e = web.ServeTempateFiles(e, "/ip2l", "ip2l-layout")
 	} else {
 		util.Log("[service] Web content is disabled. Use the --enable-web flag to enable it or set the enable_web option in the configuration file.")
 	}
+
+	e = web.ServeEmbeddedTemplates(e)
+	e = web.ServeEmeddedContent(e)
 
 	apiAuth := e.Group("/api")
 
@@ -156,9 +143,6 @@ func Start(args []string) {
 		ContinueOnIgnoredError: false,
 	}))
 
-	e = web.ServeEmeddedContent(e)
-	// e = web.ServeEmbeddedErrorFiles(e)
-	// e = web.ServeErrorTemplate(e)
 	e = web.ServeFavIcons(e)
 
 	e.HTTPErrorHandler = web.CustomHTTPErrorHandler

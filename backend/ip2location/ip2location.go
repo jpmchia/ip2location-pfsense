@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/jpmchia/ip2location-pfsense/backend/cache"
@@ -111,6 +112,43 @@ func RetrieveIpLocation(ipAddress string, key string) (*Ip2LocationBasic, error)
 	return ip2location, nil
 }
 
+func RetrieveIpPlus(ipAddress string) (*Ip2LocationPlus, error) {
+	var ip2location *Ip2LocationPlus
+	var rh *rejson.Handler = cache.Handler(Ip2LocationCache)
+	var err error
+	var key = strings.ReplaceAll(ipAddress, ":", ".")
+
+	ip2location, err = LookupIPLocationPlus(ipAddress)
+
+	if err != nil {
+		util.HandleError("[ip2location] Unable to retrieve: %s", err.Error())
+		return nil, err
+	}
+
+	if ip2location == nil {
+		util.HandleError("[ip2location] Unable to retrieve: %s", err.Error())
+		return nil, err
+	}
+
+	util.LogDebug("[ip2location] Adding IP2Location API response the cache: %v", ip2location)
+
+	rh = cache.Handler(Ip2LocationCache)
+	_, err = rh.JSONSet(key, ".", *ip2location)
+	if err != nil {
+		util.HandleError(err, "[ip2location] Failed to store results in cache")
+		return nil, err
+	}
+
+	b, err := json.MarshalIndent(*ip2location, "", "  ")
+	if err != nil { // Handle the error
+		util.HandleError(err, "[ip2location] Unable to marshal: %s", err)
+		return nil, err
+	}
+	log.Printf("[ip2location] Added to the cache: %s", b)
+
+	return ip2location, nil
+}
+
 func apiError(err error, response *http.Response) error {
 	statusCode := 0
 	if response != nil {
@@ -159,6 +197,45 @@ func LookupIPLocation(ipAddress string) (*Ip2LocationBasic, error) {
 	resp.Body.Close()
 	if err != nil {
 		util.HandleError(err, "[ip2location] LookupIPLocation: JSON decode failed.\n %s", err.Error())
+		return nil, err
+	}
+
+	return &ipLocation, nil
+}
+
+func LookupIPLocationPlus(ipAddress string) (*Ip2LocationPlus, error) {
+
+	ip2_urlquery := Ip2ApiConfig.URL + "?key=" + Ip2ApiConfig.Key + "&ip=" + ipAddress + "&format=json"
+	log.Default().Printf("[ip2location] Looking up IP Location API: %v", ipAddress)
+
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+
+	ip2ApiClient = http.Client{
+		Timeout:   10 * time.Second,
+		Transport: t,
+	}
+
+	resp, err := ip2ApiClient.Get(ip2_urlquery)
+
+	if err != nil {
+		err = apiError(err.(*url.Error), resp)
+		return nil, err
+	}
+
+	// Check the status code is what we expect.
+	if resp.StatusCode != http.StatusOK {
+		resperr := apiError(fmt.Errorf("bad status: %s", resp.Status), resp)
+		return nil, resperr
+	}
+
+	var ipLocation Ip2LocationPlus
+	err = json.NewDecoder(resp.Body).Decode(&ipLocation)
+	resp.Body.Close()
+	if err != nil {
+		util.HandleError(err, "[ip2location] LookupIPLocationPlus: JSON decode failed.\n %s", err.Error())
 		return nil, err
 	}
 

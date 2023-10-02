@@ -44,5 +44,7 @@ type (
 		IPRequests   string   `mapstructure:"ip_requests"`
 		HealthCheck  string   `mapstructure:"healthcheck"`
 		BearerTokens []string `mapstructure:"service.bearertokens"`
+		// API Keys
+		ApiTimeout int `mapstructure:"api_timeout"`
 	}
 )

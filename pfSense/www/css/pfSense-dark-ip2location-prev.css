@@ -57,8 +57,15 @@ i.fa {
 
 .breadcrumb {
     padding: 8px 15px;
-    margin-bottom: 16px;
+    padding: 5px 15px;
+    margin-bottom: 5px;
     font-size: 18px;
+    background-color: transparent;
+}
+    
+.header {
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .nav>li>a {
@@ -173,19 +180,10 @@ i.fa {
 }
 
 .header {
-    /* margin: 10px 0 20px 0; */
-    /* box-shadow: 0px 1px 10px rgba(0,0,0,.3); */
     margin: 0px 0 0px 0;
 }
 
-/* pfSense-dark-BETA.css | https://192.168.0.1/css/pfSense-dark-BETA.css?v=1687924506 */
 
-.breadcrumb {
-    /* padding: 8px 15px; */
-    /* margin-bottom: 16px; */
-    padding: 5px 15px;
-    margin-bottom: 5px;
-}
 
 .table>tbody>tr>td,
 .table>tbody>tr>th,
@@ -379,17 +377,6 @@ body {
 
 /* pfSense-dark.css | https://192.168.0.1/css/pfSense-dark.css */
 
-.breadcrumb {
-    /* background-color: #303030; */
-    background-color: transparent;
-}
-
-.header {
-    /* background-color: #303030; */
-    /* box-shadow: 1px 1px 3px #151515; */
-    background-color: transparent;
-    box-shadow: none;
-}
 
 /* Element | https://192.168.0.1/ */
 
@@ -442,4 +429,12 @@ td.bg-info {
     padding: 0.25rem;
     font-size: 1.1rem;
     font-weight: 800;
+}
+
+.panel-body {
+    color: #fefcfe;
+    padding: 0 0.25rem;
+    transition: transform 300ms ease;
+    z-index: 1;
+    position: relative;
 }

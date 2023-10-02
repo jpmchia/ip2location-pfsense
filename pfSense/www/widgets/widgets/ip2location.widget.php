@@ -1,6 +1,9 @@
 <?php
 /*
- *
+ * ip2location.widget.php
+ * Displays IP2Location data on a map.
+ * 
+ * GitHub: https://github.com/jpmchia/IP2Location-pfSense
  */
 
 require_once("guiconfig.inc");
@@ -8,14 +11,12 @@ require_once("pfsense-utils.inc");
 require_once("functions.inc");
 require_once("syslog.inc");
 
-global $ip2l_results, $ip2l_display_status, $ip2l_filterlog_time;
+global $ip2l_health, $ip2l_results, $ip2l_display_status, $ip2l_filterlog_time;
 
 function create_url($hostport, $path) {
     $url = $hostport . $path;
 	return $url;
 }
-
-
 
 function check_api($healthUrl)
 {
@@ -28,11 +29,6 @@ function check_api($healthUrl)
 	curl_setopt_array($ch, $optArray);
 
 	if(!$result = curl_exec($ch)) {
-		// $error = curl_errno($req);
-		// if ($error == CURLE_SSL_PEER_CERTIFICATE || $error == CURLE_SSL_CACERT || $error == 77) {
-		// 	curl_setopt($req, CURLOPT_CAINFO, __DIR__ . '/cert-bundle.crt');
-		// 	$result = curl_exec($req);
-		// }
 		trigger_error(curl_error($ch));
 	}
 
@@ -48,8 +44,6 @@ function check_api($healthUrl)
 	}
 	return "false";
 }
-
-
 
 
 function extract_ip_entries($logarr, $seconds, $filterlog_time)
@@ -81,13 +75,9 @@ function extract_ip_entries($logarr, $seconds, $filterlog_time)
 	return $loggedIps;
 }
 
-
-
 function truncate($string, $length) {
     return (strlen($string) > $length) ? substr($string, 0, $length) : $string;
 }
-
-
 
 function send_filterlog($ip_log, $url, $key) {
 	$ip2l_display_status = sprintf("Sending %s IPs to IP2Location API.\n", count($ip_log));
@@ -273,11 +263,12 @@ $ip2l_filterlog_time = time();
 
 $filter_logfile = "{$g['varlog_path']}/filter.log";
 $widgetkey_nodash = str_replace("-", "", $widgetkey);
-$health = check_api(create_url($ip2l_api_hostport, $ip2l_health));
-if ($health == "false") {
-	$ip2l_display_status = "IP2Location API is not available.";
+$ip2l_health = check_api(create_url($ip2l_api_hostport, $ip2l_health));
+
+if ($ip2l_health == "false") {
+	$ip2l_display_status = "Backend IP2Location service is not available.";
 } else {
-	$ip2l_display_status = "IP2Location API is available.";
+	$ip2l_display_status = "Backend IP2Location service found.";
 
 	$filter_log = conv_log_filter($filter_logfile, $ip2l_max_entries, 5000, $ip2l_fields_array);
 	$ip2l_display_status = sprintf("Filter log entries: %d\n", $ip2l_max_entries);
@@ -296,6 +287,7 @@ if (!$_REQUEST['ajax']) {
 ?>
 <script type="text/javascript">
 //<![CDATA[
+	var ip2l_health = <?=json_encode($ip2l_health)?>;
 	var ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = <?=time()?>;
 	console.log("ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?> = " + ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>);
 //]]>
@@ -311,45 +303,51 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey']) {
 ?>
 
 <?php 
-if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
-	$ret_resultsid = $_REQUEST['resultsid'];
-	get_results($ret_resultsid, $ip2l_results_url, $ip2l_token);
-	exit(0);
+if ($ip2l_health == "true") {
+	if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
+		$ret_resultsid = $_REQUEST['resultsid'];
+		get_results($ret_resultsid, $ip2l_results_url, $ip2l_token);
+		exit(0);
+	}
 }
 ?>
 
 <!-- This is the body of the widget and will be AJAX-refreshed -->
 <link rel="stylesheet" href="/widgets/widgets/ip2location.widget.css"/>
 <script src="/vendor/leaflet/leaflet.js?v=<?=filemtime('/usr/local/www/vendor/leaflet/leaflet.js')?>"></script>
-<script src="/vendor/leaflet-providers/leaflet-providers.js?v=<?=filemtime('/usr/local/www//vendor/leaflet-providers/leaflet-providers.js')?>"></script>
-<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www//vendor/winbox/js/winbox.min.js')?>"></script>
+<script src="/vendor/leaflet-providers/leaflet-providers.js?v=<?=filemtime('/usr/local/www/vendor/leaflet-providers/leaflet-providers.js')?>"></script>
+<script src="/vendor/winbox/js/winbox.min.js?v=<?=filemtime('/usr/local/www/vendor/winbox/js/winbox.min.js')?>"></script>
 <script src="/widgets/javascript/ip2location.js?v=<?=filemtime('/usr/local/www/widgets/javascript/ip2location.js')?>"></script>
 
 <div id="<?=$widgetkey?>-map">
-	<div id="leaflet" style="height: 320px;">
+	<div id="leaflet" style="height: 320px; z-index: 1;">
 	</div>
 	
-	<div class="subpanel-body">
+	<div class="subpanel-body" style="padding: 0.75rem;">
 		<span class="ip2l_status"><?=gettext($ip2l_display_status); ?></span>
 	</div>
 
+<?php
+if ($ip2l_health == "true") {
+?>
 	<span id="ip2l-details" >
 		<table id="ip2l-table" class="table table-striped table-hover">
 		<thead class="ip2ltable">
 				<tr>
-				<td>Act</td>
-				<td>Time</td>
-				<td>IF</td>
-				<td>IP address</td>
-				<td>Hits</td>
-				<td colspan="2">Actions</td>
+				<td style="font-weight: 600;">Act</td>
+				<td style="font-weight: 600;">Time</td>
+				<td style="font-weight: 600;">IP address</td>
+				<td style="font-weight: 600;">Hits</td>
+				<td colspan="2" style="font-weight: 600;">Actions</td>
 				<tr>
 			</thead>
 			<tbody id="ip2l-tbody"></tbody>
 		</table>
 	</span>
+<?php
+}
+?>	
 </div>
-
 
 <script>
 //<![CDATA[
@@ -361,6 +359,27 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	var htmlUrl = <?=json_encode($ip2l_html_hostport)?>;
 	var widgetkey = <?=json_encode($widgetkey)?>;
 	var winboxIp2LDetails;
+	
+	var bodyLuminance;
+	var theme;
+
+	if (bodyLuminance == undefined || bodyLuminance == null) {
+		bodyLuminance = getComputedStyleLuminance(document.body);
+	}
+
+	if (theme == undefined || theme == null) {
+		if (bodyLuminance > 0.5) {
+			// Set light theme
+			theme = 'light';
+			document.body.classList.add('light-theme');
+			console.log("Light theme set.");
+		} else {
+			// Set dark theme
+			theme = 'dark';
+			document.body.classList.add('dark-theme');
+			console.log("Dark theme set.");
+		}
+	}
 	
 	if (coords_x != null && coords_y != null && zoom != null) {
 		map_coords = [coords_x, coords_y];
@@ -402,11 +421,22 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 	map.on('zoomend', onMapMove);
 	map.on('moveend', onMapMove);
 
-	loadIp2LTablefromBackend();
-	//recreateIp2LDetailsTable();
-
 //]]>
 </script>
+
+<?php 
+if ($ip2l_health == "true") {
+?>
+<script type="text/javascript">
+//<![CDATA[
+	loadIp2LTablefromBackend();
+	//recreateIp2LDetailsTable();
+//]]>
+</script>
+
+<?php
+}
+?>
 
 <script type="text/javascript">
 //<![CDATA[
@@ -438,16 +468,28 @@ if ($_REQUEST['ajax'] && $_REQUEST['widgetkey'] && $_REQUEST['resultsid']) {
 		console.log("Registered IP2Location widget (<?=htmlspecialchars($widgetkey)?>) with freq = " + ip2lObject.freq + " seconds, and lastsawtime = " + ip2lWidgetLastRefresh<?=htmlspecialchars($widgetkey_nodash)?>);
 		// ---------------------------------------------------------------------------------------
 	});
+//]]>
+</script>
 
+
+<?php 
+if ($ip2l_health == "true") {
+?>
+<script type="text/javascript">
+//<![CDATA[
 	fetchMapData(<?=json_encode($widgetkey)?>, <?=json_encode($resultsid)?>);	
 //]]>
 </script>
 <?php
-/* for AJAX response, we only need the panel-body */
-if ($_REQUEST['ajax']) {
-	
-	exit;
 }
+?>
+
+<?php
+/* for AJAX response, we only need the panel-body */
+	if ($_REQUEST['ajax']) {
+		
+		exit;
+	}
 ?>
 <!-- close the body we're wrapped in and add a configuration-panel -->
 </div>

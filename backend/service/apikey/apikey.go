@@ -58,17 +58,17 @@ func GenerateKey() string {
 }
 
 // Generates a random key, of length keyLength, from the characters in keyChars
-func GenerateApiKey(ipAddr string) ApiKey {
+func GenerateApiKey(ipAddr string, validFor int) ApiKey {
 	key := GenerateKey()
 	issued := time.Now()
-	expires := time.Now().Add(time.Duration(keyExpiry) * time.Millisecond)
+	expires := time.Now().Add(time.Duration(validFor) * time.Millisecond)
 	ipAddress := ipAddr
 	return ApiKey{key, issued, expires, ipAddress}
 }
 
 // Generates and adds a new key to the validKeys map
 func AddKey(ipAddr string) ApiKey {
-	key := GenerateApiKey(ipAddr)
+	key := GenerateApiKey(ipAddr, keyExpiry)
 	validKeys[key.Key] = key
 	return key
 }

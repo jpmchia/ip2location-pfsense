@@ -40,7 +40,7 @@ function initScene(): void {
     popupVisible = false;
 
     new THREE.TextureLoader().load(
-        "https://ksenia-k.com/img/earth-map-colored.png",
+        "/img/earth-map-color.png",
         (mapTex) => {
             earthTexture = mapTex;
             earthTexture.repeat.set(1, 1);

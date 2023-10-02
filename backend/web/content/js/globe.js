@@ -39,7 +39,7 @@ function initScene() {
     popupVisible = false;
 
     new THREE.TextureLoader().load(
-        "/img/bw-earth.png",
+        "https://ksenia-k.com/img/earth-map-colored.png",
         (mapTex) => {
             earthTexture = mapTex;
             earthTexture.repeat.set(1, 1);
@@ -154,6 +154,8 @@ function updateOverlayGraphic() {
         popupVisible = false;
     }
 }
+
+
 
 function addCanvasEvents() {
     containerEl.addEventListener("mousemove", (e) => {
