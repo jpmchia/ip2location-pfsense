@@ -338,9 +338,7 @@ func ConvertToIp2Map(logEntry LogEntry, watchList bool) (*Ip2Map, error) {
 func CreateIp2Map(pLogentry *LogEntry, ip2Location *ip2location.Ip2LocationEntry, watchList bool) (*Ip2Map, error) {
 
 	var ip2map Ip2Map
-	var logentry LogEntry
-
-	logentry = *pLogentry
+	var logentry = *pLogentry
 
 	ip2map.Time = logentry.Time
 	ip2map.IP = logentry.Srcip

@@ -145,7 +145,8 @@ func (ip2location *Ip2LocationEntry) UpdateHits(lastSeen string, onWatchlist boo
 	util.LogDebug("[ip2location] UpdateHits:  LastSeen set to lastSeen: %s %s", lastSeen, ip2location.LastSeen)
 	util.LogDebug("[ip2location] UpdateHits:  Updated IP2Location hits to: %v", ip2location.Hits)
 
-	ip2location.SaveToCache(key)
+	err = ip2location.SaveToCache(key)
+	util.HandleError(err, "[ip2location] UpdateHits:  Failed to store results in cache")
 
 	return nil
 }
