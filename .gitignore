@@ -184,3 +184,5 @@ contrib/ssl/*.csr
 
 web/.yarn-integrity
 backend/backend
+web/pnpm-lock.yaml
+web/yarn.lock

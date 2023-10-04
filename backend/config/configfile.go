@@ -24,6 +24,8 @@ type (
 		Key       string `mapstructure:"key"`
 		Plan      string `mapstructure:"plan"`
 		MaxErrors int    `mapstructure:"max_errors"`
+		Source    string `mapstructure:"source"`
+		Version   string `mapstructure:"source"`
 	}
 
 	ServiceOptions struct {
@@ -46,5 +48,8 @@ type (
 		BearerTokens []string `mapstructure:"service.bearertokens"`
 		// API Keys
 		ApiTimeout int `mapstructure:"api_timeout"`
+		// Watchlist
+		LogIpMode   bool `mapstructure:"log_ip_mode"`
+		RetainIpLog bool `mapstructure:"retain_ip_log"`
 	}
 )

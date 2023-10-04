@@ -1,0 +1,15 @@
+#!/bin/sh
+# IP2Location Backend Service for pfSense
+#
+case "$1" in
+start)   echo -n "Start services: IP2Location Backend Service for pfSense"
+/opt/ip2l-pfSense/ip2location-pfsense service
+;;
+stop)   echo -n "Stop services: NZBgetIP2Location Backend Service for pfSense"
+/opt/ip2l-pfSense/ip2location-pfsense kill
+;;
+*)   echo "Usage: $0 start|stop"
+exit 1
+;;
+esac
+exit 0

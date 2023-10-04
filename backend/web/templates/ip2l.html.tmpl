@@ -4,23 +4,23 @@
     <div class="content-inner">
         
         <div class="card">
-            <div class="card-header">Location</div>
+            <div class="card-header">Location information</div>
             <div class="card-body">
                 {{ .LocationTable | NoEscape }}
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Tehnical</div>
+            <div class="card-header">Technical details</div>
             <div class="card-body">
                 {{ .TechnicalTable | NoEscape }}
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Log history</div>
+            <div class="card-header">Metrics</div>
             <div class="card-body">
-                {{ .LogHistoryTable | NoEscape }}
+                {{ .MetricsTable | NoEscape }}
             </div>
         </div>
         
