@@ -3,6 +3,7 @@ package web
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
@@ -22,6 +23,9 @@ var contentFiles embed.FS
 
 //go:embed templates/*
 var templateFiles embed.FS
+
+//go:embed error/*
+var errorFiles embed.FS
 
 var templates map[string]*template.Template
 
@@ -44,17 +48,22 @@ func NoEscape(str string) template.HTML {
 }
 
 // Render implements echo.Renderer.
-func (t *MultiTemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	templ, ok := t.templates[name]
+func (t *MultiTemplateRenderer) Render(w io.Writer, template string, data interface{}, c echo.Context) error {
+	templ, ok := t.templates[template]
 	if templ == nil || !ok {
-		err := errors.New("Template not found: " + name)
+		err := errors.New("Template not found: " + template)
 		return err
 	}
+
+	util.LogDebug("[web] Render:  Found template: %v", template)
 
 	if viewContext, isMap := data.(map[string]interface{}); isMap {
 		viewContext["reverse"] = c.Echo().Reverse
 	}
-	return templ.ExecuteTemplate(w, "pfsense.html.tmpl", data)
+
+	util.LogDebug("[web] Rendering template %v with data %v", template, data)
+
+	return templ.ExecuteTemplate(w, template, data)
 }
 
 func embeddedContentFs() http.FileSystem {
@@ -120,9 +129,9 @@ func ServeEmeddedContent(e *echo.Echo) *echo.Echo {
 	util.HandleError(err, "[web] Error loading content files")
 
 	for _, file := range files {
-		if startsWithPrefix(file, "error") {
-			urlPath := removePrefix(file, "error/")
-			e.GET(urlPath, echo.WrapHandler(errorFsHandler))
+		if startsWithPrefix(file, "content") {
+			urlPath := removePrefix(file, "content/")
+			e.GET(urlPath, echo.WrapHandler(contentFsHandler))
 			util.LogDebug("[web] Registering: %v => %v\n", urlPath, file)
 			continue
 		}
@@ -132,9 +141,9 @@ func ServeEmeddedContent(e *echo.Echo) *echo.Echo {
 			util.LogDebug("[web] Registering: %v => %v\n", urlPath, file)
 			continue
 		}
-		if startsWithPrefix(file, "content") {
-			urlPath := removePrefix(file, "content/")
-			e.GET(urlPath, echo.WrapHandler(contentFsHandler))
+		if startsWithPrefix(file, "error") {
+			urlPath := removePrefix(file, "error/")
+			e.GET(urlPath, echo.WrapHandler(errorFsHandler))
 			util.LogDebug("[web] Registering: %v => %v\n", urlPath, file)
 			continue
 		}
@@ -143,35 +152,43 @@ func ServeEmeddedContent(e *echo.Echo) *echo.Echo {
 }
 
 func ServeEmbeddedTemplates(e *echo.Echo) *echo.Echo {
-	// First, create a new template with the required functions
-	tmplWithFuncs := template.New("dashboard.html.tmpl").Funcs(template.FuncMap{
-		"NoEscape": NoEscape,
-	})
 
-	ip2lTmplWithFuncs := template.New("ip2l.html.tmpl").Funcs(template.FuncMap{
-		"NoEscape": NoEscape,
-	})
+	// First, create a new template with the required functions
 
 	// Next, parse the templates with the defined functions
-	templates["error.html.tmpl"] = template.Must(template.New("error.html.tmpl").ParseFS(errorFiles, "error/error.html.tmpl"))
-	//templates["error.html.tmpl"] = template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl"))
-	templates["ip2l.html.tmpl"] = template.Must(ip2lTmplWithFuncs.ParseFS(templateFiles, "templates/ip2l.html.tmpl", "templates/layouts/pfsense.html.tmpl"))
-	//templates["ip2l.html.tmpl"] = template.Must(template.ParseFS(templateFiles, "templates/ip2l.html.tmpl"))
-	templates["watchlist.html.tmpl"] = template.Must(tmplWithFuncs.ParseFS(templateFiles, "templates/watchlist.html.tmpl", "templates/layouts/pfsense.html.tmpl"))
-	//templates["watchlist.html.tmpl"] = template.Must(template.ParseFS(templateFiles, "templates/watchlist.html.tmpl"))
-	templates["dashboard.html.tmpl"] = template.Must(tmplWithFuncs.ParseFS(templateFiles, "templates/dashboard.html.tmpl"))
-	//templates["dashboard.html.tmpl"] = template.Must(template.ParseFS(templateFiles, "templates/dashboard.html.tmpl"))
+	pfSenselTmplWithFuncs := template.New("pfsense.html.tmpl").Funcs(template.FuncMap{"NoEscape": NoEscape})
+	templates["pfsense.html.tmpl"] = template.Must(pfSenselTmplWithFuncs.ParseFS(templateFiles, "templates/layouts/pfsense.html.tmpl"))
+	templates["ip2l.html.tmpl"] = template.Must(pfSenselTmplWithFuncs.ParseFS(templateFiles, "templates/layouts/pfsense.html.tmpl", "templates/ip2l.html.tmpl"))
+	templates["watchlist.html.tmpl"] = template.Must(pfSenselTmplWithFuncs.ParseFS(templateFiles, "templates/layouts/pfsense.html.tmpl", "templates/watchlist.html.tmpl"))
 
+	//baseTmplWithFuncs := template.New("base.html.tmpl").Funcs(template.FuncMap{"NoEscape": NoEscape})
+	//templates["watchlist.html.tmpl"] = template.Must(baseTmplWithFuncs.ParseFS(templateFiles, "templates/layouts/base.html.tmpl", "templates/watchlist.html.tmpl"))
+	//watchListTmplWithFuncs := template.New("templates/layouts/base.html.tmpl").Funcs(template.FuncMap{"NoEscape": NoEscape})
+	//templates["watchlist.html.tmpl"] = template.Must(watchListTmplWithFuncs.ParseFS(templateFiles, "templates/watchlist.html.tmpl", "templates/layouts/base.html.tmpl"))
+	// templates["cache.html.tmpl"] = template.Must(baseTmplWithFuncs.ParseFS(templateFiles, "templates/cache.html.tmpl", "templates/layouts/base.html.tmpl"))
+	// templates["exports.html.tmpl"] = template.Must(baseTmplWithFuncs.ParseFS(templateFiles, "templates/exports.html.tmpl", "templates/layouts/base.html.tmpl"))
+	// templates["settings.html.tmpl"] = template.Must(baseTmplWithFuncs.ParseFS(templateFiles, "templates/settings.html.tmpl", "templates/layouts/base.html.tmpl"))
+	// templates["help.html.tmpl"] = template.Must(baseTmplWithFuncs.ParseFS(templateFiles, "templates/help.html.tmpl", "templates/layouts/base.html.tmpl"))
+	//templates["exports.html.tmpl"] = template.Must(pfSenselTmplWithFuncs.ParseFS(templateFiles, "templates/exports.html.tmpl", "templates/layouts/pfsense.html.tmpl"))
+	//templates["help.html.tmpl"] = template.Must(pfSenselTmplWithFuncs.ParseFS(templateFiles, "templates/help.html.tmpl", "templates/layouts/pfsense.html.tmpl"))
+	//pfTableTmplWithFuncs := template.New("pftable.html.tmpl").Funcs(template.FuncMap{"NoEscape": NoEscape})
+	//templates["watchlist.html.tmpl"] = template.Must(pfTableTmplWithFuncs.ParseFS(templateFiles, "templates/watchlist.html.tmpl", "templates/layouts/pftable.html.tmpl"))
+	//templates["settings.html.tmpl"] = template.Must(pfTableTmplWithFuncs.ParseFS(templateFiles, "templates/settings.html.tmpl", "templates/layouts/pftable.html.tmpl"))
+	//templates["cache.html.tmpl"] = template.Must(pfTableTmplWithFuncs.ParseFS(templateFiles, "templates/cache.html.tmpl", "templates/layouts/pftable.html.tmpl"))
+
+	//tmplWithFuncs := template.New("dashboard.html.tmpl").Funcs(template.FuncMap{"NoEscape": NoEscape})
+	//templates["dashboard.html.tmpl"] = template.Must(tmplWithFuncs.ParseFS(templateFiles, "templates/dashboard.html.tmpl"))
+
+	// templates["dashboard.html.tmpl"] = template.Must(template.ParseFS(templateFiles, "templates/dashboard.html.tmpl"))
 	// templates["netstat.html.tmpl"] = template.Must(template.ParseFS(templateFiles, "templates/netstat.html.tmpl"))
 	// templates["service.html.tmpl"] = template.Must(template.ParseFS(templateFiles, "templates/service.html.tmpl"))
+	// templates["error.html.tmpl"] = template.Must(template.ParseFS(errorFiles, "error/error.html.tmpl"))
+
+	templates["error.html.tmpl"] = template.Must(template.New("error.html.tmpl").ParseFS(errorFiles, "error/error.html.tmpl"))
 
 	t := &MultiTemplateRenderer{
 		templates: templates,
 	}
-
-	// t.templates["dashboard.html.tmpl"].Funcs(template.FuncMap{
-	// 	"NoEscape": NoEscape,
-	// })
 
 	e.Renderer = t
 
@@ -188,38 +205,100 @@ func ContentHandler(c echo.Context) error {
 		util.Log("[web] DashboardHandler: %v", c.Request().RequestURI)
 		return DashboardHandler(c)
 
-	case "watchlist":
-		util.Log("[web] WatchListHandler: %v", c.Request().RequestURI)
-		return WatchListHandler(c)
-
 	case "ip2l":
 		util.Log("[web] Ip2lHandler: %v", c.Request().RequestURI)
-		return Ip2lHandler(c)
+		data, err := Ip2lHandler(c)
+		util.HandleError(err, "[web] Ip2lHandler: %v", c.Request().RequestURI)
+		util.LogDebug("ContentHandler: Rendering template with: %s", data)
+		return c.Render(http.StatusOK, "pfsense.html.tmpl", data)
 
-	// case "netstat":
-	// 	util.Log("[web] NetstatHandler: %v", c.Request().RequestURI)
-	// 	return NetstatHandler(c)
+	case "watchlist":
+		util.Log("[web] WatchListHandler: %v", c.Request().RequestURI)
+		data, err := WatchListHandler(c)
+		util.HandleError(err, "[web] WatchListHandler: %v", c.Request().RequestURI)
+		util.LogDebug("ContentHandler: Rendering template with: %s", data)
+		return c.Render(http.StatusOK, "pfsense.html.tmpl", data)
 
-	// case "service":
-	// 	util.Log("[web] ServiceHandler: %v", c.Request().RequestURI)
-	// 	return ServiceHandler(c)
+	case "cache":
+		//util.Log("[web] CacheHandler: %v", c.Request().RequestURI)
+		//return CacheHandler(c)
+		util.Log("[web] WatchListHandler: %v", c.Request().RequestURI)
+		data, err := Ip2lHandler(c)
+		util.HandleError(err, "[web] Ip2lHandler: %v", c.Request().RequestURI)
+		util.LogDebug("ContentHandler: Rendering template with: %s", data)
+		return c.Render(http.StatusOK, "pfsense.html.tmpl", data)
 
 	case "settings":
-		util.Log("[web] SettingsHandler: %v", c.Request().RequestURI)
-		return SettingsHandler(c)
+		//util.Log("[web] SettingsHandler: %v", c.Request().RequestURI)
+		//return SettingsHandler(c)
+		util.Log("[web] WatchListHandler: %v", c.Request().RequestURI)
+		data, err := Ip2lHandler(c)
+		util.HandleError(err, "[web] Ip2lHandler: %v", c.Request().RequestURI)
+		util.LogDebug("ContentHandler: Rendering template with: %s", data)
+		return c.Render(http.StatusOK, "pfsense.html.tmpl", data)
 
-	case "about":
-		util.Log("[web] AboutHandler: %v", c.Request().RequestURI)
-		return AboutHandler(c)
+	case "export":
+		//util.Log("[web] ExportHandler: %v", c.Request().RequestURI)
+		//return ExportHandler(c)
+		util.Log("[web] WatchListHandler: %v", c.Request().RequestURI)
+		data, err := Ip2lHandler(c)
+		util.HandleError(err, "[web] Ip2lHandler: %v", c.Request().RequestURI)
+		util.LogDebug("ContentHandler: Rendering template with: %s", data)
+		return c.Render(http.StatusOK, "pfsense.html.tmpl", data)
 
 	case "help":
-		util.Log("[web] HelpHandler: %v", c.Request().RequestURI)
-		return HelpHandler(c)
+		//util.Log("[web] HelpHandler: %v", c.Request().RequestURI)
+		//return HelpHandler(c)
+		util.Log("[web] WatchListHandler: %v", c.Request().RequestURI)
+		data, err := Ip2lHandler(c)
+		util.HandleError(err, "[web] Ip2lHandler: %v", c.Request().RequestURI)
+		util.LogDebug("ContentHandler: Rendering template with: %s", data)
+		return c.Render(http.StatusOK, "pfsense.html.tmpl", data)
 
 	default:
 		CustomHTTPErrorHandler(errors.New("page not found"), c)
 		return nil
 	}
+}
+
+// CustomHTTPErrorHandler is a custom error handler that renders the error page
+// from the embedded file system or renders using a template, also embedded,
+// depending on the error code
+func CustomHTTPErrorHandler(err error, c echo.Context) {
+	var message string
+	code := http.StatusInternalServerError
+	c.Logger().Error(err)
+
+	if err.Error() == "page not found" {
+		message = "Page not found"
+		code = http.StatusNotFound
+	} else if he, ok := err.(*echo.HTTPError); ok {
+		details := err.(*echo.HTTPError)
+
+		switch code = details.Code; code {
+		case http.StatusNotFound:
+			message = "Page not found"
+		case http.StatusInternalServerError:
+			message = "Internal server error"
+		case http.StatusUnauthorized:
+			message = "Not authorised"
+		case http.StatusForbidden:
+			message = "Forbidden"
+		default:
+			message = fmt.Sprintf("%v", details.Message)
+		}
+
+		log.Printf("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
+	}
+
+	log.Printf("CustomHTTPErrorHandler: Rendering template with code %d and message %s", code, message)
+
+	var data = make(map[string]interface{})
+	data["code"] = code
+	data["message"] = message
+
+	_ = c.Render(http.StatusOK, "error.html.tmpl", data)
+	//return c.Render(http.StatusOK, "dashboard.html.tmpl", data)
 }
 
 func IncludeShaders(data map[string]interface{}) map[string]interface{} {
@@ -298,30 +377,8 @@ func DashboardHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "dashboard.html.tmpl", data)
 }
 
-func NetstatHandler(c echo.Context) error {
-
-	return c.String(http.StatusOK, "Netstat")
-}
-
-func ServiceHandler(c echo.Context) error {
-
-	return c.String(http.StatusOK, "Service")
-}
-
 func ApiKeyHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "ApiKeys")
-}
-
-func SettingsHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "Settings")
-}
-
-func AboutHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "About")
-}
-
-func HelpHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "Help")
 }
 
 func LoginHandler(c echo.Context) error {

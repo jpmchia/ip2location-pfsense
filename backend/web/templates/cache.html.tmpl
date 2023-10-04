@@ -1,0 +1,16 @@
+{{define "Content"}}
+
+<div class="content">
+    <div class="content-inner">
+        
+        <div class="card">
+            <div class="card-header">Cache</div>
+            <div class="card-body">
+                {{ .CacheContent | NoEscape }}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{end}}

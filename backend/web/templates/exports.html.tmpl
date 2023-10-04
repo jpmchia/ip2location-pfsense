@@ -1,0 +1,22 @@
+
+{{define "Content"}}
+<div class="content">
+    <div class="content-inner">
+        
+        <div class="card">
+            <div class="card-header">Current</div>
+            <div class="card-body">
+                {{ .CurrentWatch | NoEscape }}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Previous </div>
+            <div class="card-body">
+                {{ .PreviousWatch | NoEscape }}
+            </div>
+        </div>
+                   
+    </div>
+</div>
+{{end}}

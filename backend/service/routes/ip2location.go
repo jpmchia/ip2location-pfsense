@@ -23,7 +23,7 @@ func PostIp2LocationHandler(c echo.Context) error {
 	key := c.QueryParam("key")
 	util.Log("[ip2location] Received request for IP: %s\n", ip_param)
 
-	err, ipAddr := ip2location.RetrieveIpLocation(ip_param, key)
+	err, ipAddr := ip2location.RetrieveIpLocationFromCache(ip_param, key)
 	util.HandleError(err, "[ip2location] Failed to retrieve IP location: %v", err)
 
 	if ipAddr == nil {

@@ -1,56 +1,5 @@
 package web
 
-import (
-	"embed"
-	"fmt"
-	"log"
-	"net/http"
-
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
-
-	"github.com/labstack/echo/v4"
-)
-
-//go:embed error/*
-var errorFiles embed.FS
-
-// CustomHTTPErrorHandler is a custom error handler that renders the error page
-// from the embedded file system or renders using a template, also embedded,
-// depending on the error code
-func CustomHTTPErrorHandler(err error, c echo.Context) {
-	var message string
-	code := http.StatusInternalServerError
-	c.Logger().Error(err)
-
-	if err.Error() == "page not found" {
-		message = "Page not found"
-		code = http.StatusNotFound
-	} else if he, ok := err.(*echo.HTTPError); ok {
-		details := err.(*echo.HTTPError)
-
-		switch code = details.Code; code {
-		case http.StatusNotFound:
-			message = "Page not found"
-		case http.StatusInternalServerError:
-			message = "Internal server error"
-		case http.StatusUnauthorized:
-			message = "Not authorised"
-		case http.StatusForbidden:
-			message = "Forbidden"
-		default:
-			message = fmt.Sprintf("%v", details.Message)
-		}
-		log.Printf("CustomHTTPErrorHandler: %d : %v : %v", details.Code, details.Message, he.Internal)
-	}
-
-	log.Printf("CustomHTTPErrorHandler: Rendering template with code %d and message %s", code, message)
-	err = c.Render(http.StatusOK, "error.html.tmpl", map[string]interface{}{
-		"code":    code,
-		"message": message,
-	})
-	util.HandleError(err, "Unable to render error page")
-}
-
 // type TemplateRenderer struct {
 // 	templates *template.Template
 // }

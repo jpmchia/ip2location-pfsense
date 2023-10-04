@@ -114,6 +114,7 @@ func initViperConfig(appName string) *viper.Viper {
 	v.SetDefault("ip2api.key", "")
 	v.SetDefault("ip2api.plan", "Free")
 	v.SetDefault("ip2api.max_errors", 5)
+	v.SetDefault("ip2api.source", "IP2Location-pfSense")
 
 	v.SetDefault("service.bind_host", "127.0.0.1")
 	v.SetDefault("service.bind_port", "9999")

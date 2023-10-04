@@ -13,13 +13,13 @@ func DetermineIp(LogEntry LogEntry) (string, string) {
 	dst, err2 := netip.ParseAddr(LogEntry.Dstip)
 
 	if err1 != nil && err2 != nil {
-		util.HandleError(err1, "Failed to parse IP address: %s %s", err1, err2)
+		util.HandleError(err1, "[pfsense] DetermineIp:  Failed to parse IP address: %s %s", err1, err2)
 		return "", ""
 	}
 
 	// If both the source and destination IP addresses are private IP addresses
 	if src.IsPrivate() && dst.IsPrivate() {
-		util.LogDebug("Both IP addresses are private")
+		util.LogDebug("[pfsense] DetermineIp:  Both IP addresses are private")
 		return "", ""
 	}
 
@@ -32,7 +32,7 @@ func DetermineIp(LogEntry LogEntry) (string, string) {
 			ip = LogEntry.Srcip
 			direction = "[out]"
 		}
-		util.LogDebug("Source address is not private, destination address is private")
+		util.LogDebug("[pfsense] DetermineIp:  Source address is not private, destination address is private")
 
 		return ip, direction
 	}
@@ -46,7 +46,7 @@ func DetermineIp(LogEntry LogEntry) (string, string) {
 			ip = LogEntry.Dstip
 			direction = "[in]"
 		}
-		util.LogDebug("Source address is private, desitination address is not private")
+		util.LogDebug("[pfsense] DetermineIp:  Source address is private, desitination address is not private")
 		return ip, direction
 	}
 
@@ -58,12 +58,12 @@ func DetermineIp(LogEntry LogEntry) (string, string) {
 			ip = LogEntry.Srcip
 			direction = "in"
 		}
-		util.LogDebug("Both addresses are not private")
+		util.LogDebug("[pfsense] DetermineIp:  Both addresses are not private")
 		return ip, direction
 	}
 	ip = ""
 	direction = ""
 
-	util.LogDebug("IP addresses unmatched")
+	util.LogDebug("[pfsense] DetermineIp:  IP addresses unmatched")
 	return ip, direction
 }

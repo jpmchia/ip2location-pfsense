@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/jpmchia/ip2location-pfsense/backend/ip2location"
@@ -11,10 +10,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Ip2lHandler(c echo.Context) error {
+func Ip2lHandler(c echo.Context) (map[string]interface{}, error) {
 	var data = make(map[string]interface{})
 	var generatedKey = apikey.GenerateApiKey(c.RealIP(), 1800)
-	var ip2lp *ip2location.Ip2LocationPlus
+	var ip2lp *ip2location.Ip2LocationEntry
 	var err error
 
 	ip2lp, err = ip2location.RetrieveIpPlus(c.QueryParam("ip"))
@@ -22,7 +21,7 @@ func Ip2lHandler(c echo.Context) error {
 
 	data["ip2l"] = ip2lp.IP
 
-	data["Title"] = fmt.Sprintf("%s - %s, %s", ip2lp.IP, ip2lp.CityName, ip2lp.CountryName)
+	data["Title"] = fmt.Sprintf("%s geolocation", ip2lp.IP)
 
 	data["LocationTable"], err = constructLocationTable(ip2lp)
 	util.HandleError(err, "[web] Failed to construct location table for IP: %s", c.QueryParam("ip"))
@@ -30,7 +29,7 @@ func Ip2lHandler(c echo.Context) error {
 	data["TechnicalTable"], err = constructTechnicalTable(ip2lp)
 	util.HandleError(err, "[web] Failed to construct location table for IP: %s", c.QueryParam("ip"))
 
-	data["LogHistoryTable"], err = constructLogHistoryTable(ip2lp.IP)
+	data["MetricsTable"], err = constructMetricsTable(ip2lp)
 	util.HandleError(err, "[web] Failed to construct location table for IP: %s", c.QueryParam("ip"))
 
 	data["IPAddr"] = c.QueryParam("ip")
@@ -41,14 +40,19 @@ func Ip2lHandler(c echo.Context) error {
 	data["Lat"] = ip2lp.Latitude
 	data["Lon"] = ip2lp.Longitude
 
+	data["LocationClass"] = "active"
+	data["WatchlistClass"] = "inactive"
+	data["CacheClass"] = "inactive"
+	data["ExportClass"] = "inactive"
+	data["SettingsClass"] = "inactive"
+	data["HelpClass"] = "inactive"
+
 	data = IncludeShaders(data)
 
-	util.LogDebug("ContentHandler: Rendering template with: %s", data)
-
-	return c.Render(http.StatusOK, "ip2l.html.tmpl", data)
+	return data, nil
 }
 
-func constructLocationTable(ip2lplus *ip2location.Ip2LocationPlus) (tableStr string, err error) {
+func constructLocationTable(ip2lplus *ip2location.Ip2LocationEntry) (tableStr string, err error) {
 
 	if ip2lplus == nil {
 		return "", fmt.Errorf("ip2lplus is nil")
@@ -107,7 +111,7 @@ func constructLocationTable(ip2lplus *ip2location.Ip2LocationPlus) (tableStr str
 	return tableStr, nil
 }
 
-func constructTechnicalTable(ip2lplus *ip2location.Ip2LocationPlus) (tableStr string, err error) {
+func constructTechnicalTable(ip2lplus *ip2location.Ip2LocationEntry) (tableStr string, err error) {
 
 	if ip2lplus == nil {
 		return "", fmt.Errorf("ip2lplus is nil")
@@ -133,6 +137,29 @@ func constructTechnicalTable(ip2lplus *ip2location.Ip2LocationPlus) (tableStr st
 
 	if len(ip2lplus.UsageType) > 0 {
 		tableStr += "<tr><th>Type</th><td>" + ip2lplus.UsageType + "</td></tr>"
+	}
+
+	tableStr += "</table>"
+
+	return tableStr, nil
+}
+
+func constructMetricsTable(ip2lplus *ip2location.Ip2LocationEntry) (tableStr string, err error) {
+	// var data = make(map[string]interface{})
+	// var metrics *cache.Metrics
+
+	tableStr = "<table class=\"ip2l-table\">"
+
+	if len(ip2lplus.FirstSeen) > 0 {
+		tableStr += "<tr><th>First seen</th><td>" + ip2lplus.FirstSeen + "</td></tr>"
+	}
+
+	if len(ip2lplus.LastSeen) > 0 {
+		tableStr += "<tr><th>Last seen</th><td>" + ip2lplus.LastSeen + "</td></tr>"
+	}
+
+	if ip2lplus.Hits > 0 {
+		tableStr += fmt.Sprintf("<tr><th>No. of hits</th><td>%d</td></tr>", ip2lplus.Hits)
 	}
 
 	tableStr += "</table>"

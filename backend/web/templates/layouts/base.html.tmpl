@@ -1,0 +1,92 @@
+{{define "base.html.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/css/fa-solid.min.css">
+</head>
+<body>
+
+<!-- Header  -->
+<div class="header"><p>{{ .Title }}</p></div>
+
+<!-- Container -->
+<div class="container">
+    <div class="sidebar">
+        <nav class="main-menu">
+        <ul>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=ip2l&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-location {{ .LocationClass }}"><span class="nav-text">Location</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=watchlist&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-watch {{ .WatchlistClass }}"><span class="nav-text">Watchlist</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=cache&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-cache {{ .CacheClass }}"><span class="nav-text">Cache</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=export&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-export {{ .ExportClass }}"><span class="nav-text">Export</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=settings&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-setttings {{ .SettingsClass }}"><span class="nav-text">Settings</span></a></div></li>          
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=help&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-help {{ .HelpClass }}"><span class="nav-text">Help</span></a></div></li>
+        </ul>
+        </nav>
+    </div>
+    <div class="main-content">
+    <!-- Content -->    
+    {{template "Content" .}}
+    <!-- Content -->    
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <div class="footer-content">
+        <div class="footer-text">
+            <p>IP2Location Backend Service for pfSense. Powered by <a href="https://ip2location.io/" target="_blank">IP2Location.io</a></p>
+            <a href="https://codepen.io/ksenia-k/pen/NWERpmb" target="_blank">3D Globe Three.js with location pointer by Ksenia Kondrashova</a>
+        </div>
+    </div>
+</div>
+
+<div class="globe-wrapper">
+    <canvas id="globe-3d"></canvas>
+    <canvas id="globe-2d-overlay"></canvas>
+    <div id="globe-popup-overlay">
+        <div class="globe-popup"></div>
+    </div>
+</div>
+
+<script type="x-shader/x-fragment" id="fragment-shader-map">
+{{NoEscape .shaderCode}}
+</script>
+<script type="x-shader/x-vertex" id="vertex-shader-map">
+{{NoEscape .vertexCode}}
+
+</script>
+<script type="text/javascript" src="/js/gsap.min.js"></script>
+<script type="text/javascript" src="/js/bundle.js"></script>
+<script type="text/javascript">
+
+var theme = {{ .Theme }};
+
+
+
+var ipAddr = {{ .IPAddr }};
+var realIP = {{ .RealIP }};
+var keyExpires = {{ .APIKeyExpires }};
+var apiKey = {{ .APIKey }};
+
+var coordinates = [{{ .Lat }}, {{ .Lon }}];
+
+window.addEventListener('load', function() {
+    
+    var lat = {{ .Lat }};
+    var lon = {{ .Lon }};
+    
+    window.placePointOnPlanet("{{.}}", lon, lat, 1);
+
+}, false);
+
+</script>
+</body>
+</html>
+{{end}}

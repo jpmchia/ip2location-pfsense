@@ -3,10 +3,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{{ .Title }}</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/fontawesome.min.css">
-  <link rel="stylesheet" href="/css/fa-solid.min.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/css/fa-solid.min.css">
 </head>
 <body>
 
@@ -18,13 +21,12 @@
     <div class="sidebar">
         <nav class="main-menu">
         <ul>
-            <li><p><i class="fa fa-bar-chart"></i><span class="nav-text">Dashboard</span></p></li>
-            <li><p><i class="fa fa-list"></i><span class="nav-text">Watchlist</span></p></li>
-            <li><p><i class="fa fa-table"></i><span class="nav-text">Cache</span></p></li>
-            <li><p><i class="fa fa-map-marker"></i><span class="nav-text">Maps</span></p></li>
-            <li><p><i class="fa fa-folder-open"></i><span class="nav-text">Export</span></p></li>
-            <li><p><i class="fa fa-info"></i><span class="nav-text">Help</span></p>
-            </li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=ip2l&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-location {{ .LocationClass }}"><span class="nav-text">Location</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=watchlist&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-watch {{ .WatchlistClass }}"><span class="nav-text">Watchlist</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=cache&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-cache {{ .CacheClass }}"><span class="nav-text">Cache</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=export&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-export {{ .ExportClass }}"><span class="nav-text">Export</span></a></div></li>
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=settings&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-setttings {{ .SettingsClass }}"><span class="nav-text">Settings</span></a></div></li>          
+            <li class="main-menu"><a href="/ip2l?key={{ .ApiKey }}&a=help&ip={{ .IPAddr }}&theme={{ .Theme }}"><div class="side-icon neon-help {{ .HelpClass }}"><span class="nav-text">Help</span></a></div></li>
         </ul>
         </nav>
     </div>
@@ -64,28 +66,25 @@
 <script type="text/javascript" src="/js/bundle.js"></script>
 <script type="text/javascript">
 
-var theme = {{ .Theme }}
-var ipAddr = {{ .IPAddr }}
-var realIP = {{ .RealIP }}
-var keyExpires = {{ .APIKeyExpires }}
-var apiKey = {{ .APIKey }}
-var coordinates = [{{ .Coordinates.Lat }}, {{ .Coordinates.Lon }}]
+var theme = {{ .Theme }};
 
-function addPointer(lat, long) {
+
+
+var ipAddr = {{ .IPAddr }};
+var realIP = {{ .RealIP }};
+var keyExpires = {{ .APIKeyExpires }};
+var apiKey = {{ .APIKey }};
+
+var coordinates = [{{ .Lat }}, {{ .Lon }}];
+
+window.addEventListener('load', function() {
     
-    if (point.length) {
-        console.log("lat: " + lat + "; long: " + long);
-        pointerPos = new THREE.Vector2(lat, long);
-        //pointerPos = new THREE.Vector2(res[0].face.normal.x, res[0].face.normal.y);
-        pointer.position.set(res[0].face.normal.x, res[0].face.normal.y, res[0].face.normal.z);
-        mapMaterial.uniforms.u_pointer.value = res[0].face.normal;
-        popupEl.innerHTML = cartesianToLatLong();
-        showPopupAnimation(true);
-        clock.start()
-    }
-}
+    var lat = {{ .Lat }};
+    var lon = {{ .Lon }};
+    
+    window.placePointOnPlanet("{{.}}", lon, lat, 1);
 
-addPointer(coordinates[0], coordinates[1]);
+}, false);
 
 </script>
 </body>

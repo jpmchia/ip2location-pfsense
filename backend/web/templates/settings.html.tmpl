@@ -1,0 +1,35 @@
+
+{{define "Content"}}
+<div class="content">
+    <div class="content-inner">
+        {{ block "main" . }}    
+        <div class="card">
+            <div class="card-header">Current</div>
+            <div class="card-body">
+                {{ .Settings | NoEscape }}
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{ block "footer" . }}
+<!-- Footer -->
+{{end}}
+
+{{ block "threejs" . }}
+{{end}}
+
+{{ block "scripts" . }}
+<script type="text/javascript">
+var theme = {{ .Theme }};
+var ipAddr = {{ .IPAddr }};
+var realIP = {{ .RealIP }};
+var keyExpires = {{ .APIKeyExpires }};
+var apiKey = {{ .APIKey }};
+var coordinates = [{{ .Lat }}, {{ .Lon }}];
+</script>
+{{end}}
+
+</body>
+</html>
+{{end}}

@@ -123,8 +123,8 @@ func Start(args []string) {
 		util.Log("[service] Web content is disabled. Use the --enable-web flag to enable it or set the enable_web option in the configuration file.")
 	}
 
-	e = web.ServeEmbeddedTemplates(e)
 	e = web.ServeEmeddedContent(e)
+	e = web.ServeEmbeddedTemplates(e)
 
 	apiAuth := e.Group("/api")
 
@@ -170,9 +170,3 @@ func Start(args []string) {
 
 	util.HandleFatalError(err, "[service] Failed to start service")
 }
-
-// // HomePageHandler serves the home page
-// func HomePageHandler(c echo.Context) error {
-// 	util.Log("[service] Received request for homepage\n")
-// 	return c.File("/index.html")
-// }
