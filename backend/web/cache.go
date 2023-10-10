@@ -3,9 +3,9 @@ package web
 import (
 	"net/http"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/ip2location"
-	"github.com/jpmchia/ip2location-pfsense/backend/service/apikey"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/ip2location"
+	"github.com/jpmchia/ip2location-pfsense/service/apikey"
+	"github.com/jpmchia/ip2location-pfsense/util"
 	"github.com/labstack/echo/v4"
 )
 

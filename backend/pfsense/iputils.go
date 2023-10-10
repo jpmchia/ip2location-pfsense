@@ -3,7 +3,7 @@ package pfsense
 import (
 	"net/netip"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/util"
 )
 
 func DetermineIp(LogEntry LogEntry) (string, string) {

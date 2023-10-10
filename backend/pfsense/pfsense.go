@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/cache"
-	"github.com/jpmchia/ip2location-pfsense/backend/config"
-	"github.com/jpmchia/ip2location-pfsense/backend/ip2location"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/cache"
+	"github.com/jpmchia/ip2location-pfsense/config"
+	"github.com/jpmchia/ip2location-pfsense/ip2location"
+	"github.com/jpmchia/ip2location-pfsense/util"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo/v4"
@@ -59,7 +59,6 @@ func ProcessLogEntries(logEntries FilterLog) int64 {
 	var result int64
 	var err error
 	var ip2MapList []Ip2Map // Create the result set
-	//var pIp2Map *Ip2Map     // Create a pointer to a IP2Map
 	var ip2locationEntry *ip2location.Ip2LocationEntry
 	var countProcessed int = 0
 	var countLocated int = 0

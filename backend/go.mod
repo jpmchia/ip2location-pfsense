@@ -1,4 +1,4 @@
-module github.com/jpmchia/ip2location-pfsense/backend
+module github.com/jpmchia/ip2location-pfsense
 
 go 1.21
 

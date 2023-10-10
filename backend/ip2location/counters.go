@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/util"
 
 	"github.com/spf13/viper"
 )
