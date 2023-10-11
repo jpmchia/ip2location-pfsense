@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/pfsense"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/pfsense"
+	"github.com/jpmchia/ip2location-pfsense/util"
 	"github.com/labstack/echo/v4"
 )
 

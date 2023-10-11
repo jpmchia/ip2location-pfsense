@@ -2,6 +2,7 @@
 # This script copies the files from the pfSense/www directory to the pfSense firewall.
 # It is intended to be used for development purposes only.
 
+
 ARGS=$@
 VERBOSE=false
 PFSENSE_ADDR="192.168.0.1"
@@ -97,6 +98,21 @@ function copy_files() {
     done
 }
 
+
+function create_directories () {
+	unset -e
+
+	echo -e "${YELLOW}Creating target directories on pfSense firewall ... ${NORMAL}"
+
+	find "${PFSENSE_DIR}/www" -type d -exec realpath --relative-to="${PFSENSE_DIR}" '{}' \; | while IFS= read -r dirname; do
+		let count++
+		print_verbose "${YELLOW}Creating directory on pfSense [${count}] ${NORMAL}${dirname}"
+		echo -e "${PFSENSE_DEST}/${dirname}"
+		ssh ${PFSENSE_ADDR} "mkdir -p ${PFSENSE_DEST}/${dirname}" < /dev/null
+	done
+}
+
+
 function copy_dev_files() {
     echo -e "${YELLOW}Copying files to pfSense firewall...${NORMAL}"
 
@@ -124,6 +140,7 @@ function main() {
     if [ "$REMOVE" = true ]; then
         remove_files
     else
+	create_directories
         copy_files
     fi
 }

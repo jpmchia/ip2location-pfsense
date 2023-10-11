@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/version"
+	"github.com/jpmchia/ip2location-pfsense/version"
 
 	"github.com/spf13/cobra"
 )

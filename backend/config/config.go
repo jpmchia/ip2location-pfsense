@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/util"
 
 	"github.com/spf13/viper"
 )
@@ -32,6 +32,7 @@ type Provider interface {
 var Config Options
 
 const appName string = "github.com/jpmchia/ip2location-pfsense/backend"
+const appNamePrefix string = "ip2location-pfsense"
 
 var CfgFile string = "config.yaml"
 var defaultConfig *viper.Viper
@@ -45,7 +46,7 @@ func init() {
 
 func Configure() {
 	// Load the default configuration
-	defaultConfig = initViperConfig(appName)
+	defaultConfig = initViperConfig(appNamePrefix)
 
 	// Set and load additional configuration locations
 	setConfigLocations(CfgFile)
@@ -90,32 +91,28 @@ func initViperConfig(appName string) *viper.Viper {
 	// global defaults
 	v.SetDefault("jsonlogs", false)
 	v.SetDefault("loglevel", "debug")
-	v.SetDefault("installation_path", "/usr/local/ip2location")
 	v.SetDefault("use_redis", true)
+	v.SetDefault("installation_path", "/opt/ip2location-pfsense")
 	v.SetDefault("redis.ip2location.host", "127.0.0.1")
 	v.SetDefault("redis.ip2location.port", "6379")
 	v.SetDefault("redis.ip2location.db", 1)
 	v.SetDefault("redis.ip2location.auth", "ip2location")
 	v.SetDefault("redis.ip2location.pass", "password")
-
 	v.SetDefault("redis.pfsense.host", "127.0.0.1")
 	v.SetDefault("redis.pfsense.port", "6379")
 	v.SetDefault("redis.pfsense.db", 2)
 	v.SetDefault("redis.pfsense.auth", "ip2location")
 	v.SetDefault("redis.pfsense.pass", "password")
-
 	v.SetDefault("redis.watchlist.host", "127.0.0.1")
 	v.SetDefault("redis.watchlist.port", "6379")
 	v.SetDefault("redis.watchlist.db", 3)
 	v.SetDefault("redis.watchlist.auth", "ip2location")
 	v.SetDefault("redis.watchlist.pass", "password")
-
 	v.SetDefault("ip2api.url", "https://api.ip2location.io/")
 	v.SetDefault("ip2api.key", "")
 	v.SetDefault("ip2api.plan", "Free")
 	v.SetDefault("ip2api.max_errors", 5)
 	v.SetDefault("ip2api.source", "IP2Location-pfSense")
-
 	v.SetDefault("service.bind_host", "127.0.0.1")
 	v.SetDefault("service.bind_port", "9999")
 	v.SetDefault("service.allow_hosts", "*")
@@ -127,7 +124,6 @@ func initViperConfig(appName string) *viper.Viper {
 	v.SetDefault("service.ip2geomap", "/index.html")
 	v.SetDefault("service.healthcheck", "/health")
 	v.SetDefault("service.ip_requests", "/api/ip2location")
-
 	v.SetDefault("use_cache", true)
 	v.SetDefault("debug", false)
 

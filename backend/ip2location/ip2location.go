@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/cache"
-	"github.com/jpmchia/ip2location-pfsense/backend/config"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
-	"github.com/jpmchia/ip2location-pfsense/backend/version"
+	"github.com/jpmchia/ip2location-pfsense/cache"
+	"github.com/jpmchia/ip2location-pfsense/config"
+	"github.com/jpmchia/ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/version"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/nitishm/go-rejson/v4"

@@ -35,7 +35,16 @@
 
 :root {
     --font-colour: var(--font-colour);
-    --font-family: "Inter var", "Inter", 'Open Sans', 'Ubuntu', 'Arial';
+    --font-family: "Inter var", Inter, "Inter UI", -apple-system, system-ui, "Segoe UI", Roboto, Noto, Oxygen-Sans, Ubuntu, Cantrell, "Helvetica Neue", sans-serif;
+    --font-weight: 400;
+    --font-weight-bold: 700;
+    --font-weight-bolder: 900;
+    --font-size: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.5rem;
+    --font-size-xxl: 2rem;
+    --font-size-xxxl: 3rem; 
     --border-radius: 1.25rem;
     --sidenav-slimwidth: 3.5rem;
     --sidenav-fullwidth: 10rem;

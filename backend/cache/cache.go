@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/config"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/config"
+	"github.com/jpmchia/ip2location-pfsense/util"
 
 	"github.com/nitishm/go-rejson/v4"
 	"github.com/redis/go-redis/v9"
@@ -23,7 +23,6 @@ var instances map[string]RedisInstance
 
 func init() {
 	util.LogDebug("[cache] Initialising cache service")
-
 	instances = make(map[string]RedisInstance)
 }
 

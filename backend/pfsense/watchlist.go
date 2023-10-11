@@ -5,13 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/cache"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/cache"
+	"github.com/jpmchia/ip2location-pfsense/util"
 )
-
-// <a class="fa fa-plus-square-o icon-pointer icon-primary"
-// href="easyrule.php?action=pass&amp;int=wg1&amp;proto=tcp&amp;src=[2001:da8:d00a:2::]&amp;dst=[2a0e:97c0:5c1::]&amp;dstport=19128&amp;ipproto=inet6"
-// title="" data-original-title="EasyRule: Pass this traffic">
 
 type WatchListItem struct {
 	IpAddress  string   `json:"ip"`
@@ -301,18 +297,3 @@ func (wl WatchList) GetDisplayItem(ip string) WatchListDisplayItem {
 
 	return wldi
 }
-
-// IpAddress string `json:"ip"`
-// Count     int    `json:"hits"`
-// FirstSeen string `json:"time"`
-// LastSeen  string `json:"lastSeen"`
-// City      string `json:"city"`
-// Country   string `json:"country"`
-// Direction string `json:"direction"`
-// Act       string `json:"act"`
-// Srcip:     item.Srcip,
-// Dstip:     item.Dstip,
-// Dstport:   item.Dstport,
-// Interface string `json:"interface"`
-// Proto     string `json:"proto"`
-// Rulenum   string `json:"rulenum"`

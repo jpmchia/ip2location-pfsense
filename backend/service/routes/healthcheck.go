@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/config"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
+	"github.com/jpmchia/ip2location-pfsense/config"
+	"github.com/jpmchia/ip2location-pfsense/util"
 	"github.com/labstack/echo/v4"
 )
 

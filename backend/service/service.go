@@ -3,12 +3,12 @@ package service
 import (
 	"net/http"
 
-	"github.com/jpmchia/ip2location-pfsense/backend/cache"
-	"github.com/jpmchia/ip2location-pfsense/backend/config"
-	"github.com/jpmchia/ip2location-pfsense/backend/service/apikey"
-	"github.com/jpmchia/ip2location-pfsense/backend/service/routes"
-	"github.com/jpmchia/ip2location-pfsense/backend/util"
-	"github.com/jpmchia/ip2location-pfsense/backend/web"
+	"github.com/jpmchia/ip2location-pfsense/cache"
+	"github.com/jpmchia/ip2location-pfsense/config"
+	"github.com/jpmchia/ip2location-pfsense/service/apikey"
+	"github.com/jpmchia/ip2location-pfsense/service/routes"
+	"github.com/jpmchia/ip2location-pfsense/util"
+	"github.com/jpmchia/ip2location-pfsense/web"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
