@@ -21,10 +21,8 @@ import (
 	"os"
 
 	"github.com/jpmchia/ip2location-pfsense/config"
-	"github.com/jpmchia/ip2location-pfsense/util"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -69,21 +67,13 @@ func init() {
 
 	// Define global persistent flags
 	rootCmd.PersistentFlags().StringVarP(&config.CfgFile, "config", "c", cfgFile, "specifiy the filename and path of the configiration file")
-	rootCmd.PersistentFlags().StringVarP(&projectBase, "projectbase", "b", "https://github.com/jpmchia/IP2Location-pfSense", "base project directory")
-	rootCmd.PersistentFlags().BoolVarP(&util.Debug, "debug", "v", false, "output verbose debugging information")
+	// rootCmd.PersistentFlags().StringVarP(&projectBase, "projectbase", "b", "https://github.com/jpmchia/IP2Location-pfSense", "base project directory")
 
 	// Bind flags to viper
-	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
-	util.HandleError(err, "Unable to bind flag to viper")
-	err = viper.BindPFlag("projectbase", rootCmd.PersistentFlags().Lookup("projectbase"))
-	util.HandleError(err, "Unable to bind flag to viper")
-
-	//if util.Debug {
-	//	util.LogDebug("Debugging verbose mode enabled")
-	//}
-
-	// // Load configuration
-	// config.LoadConfigProvider(cfgFile)
+	// err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	// util.HandleError(err, "Unable to bind flag to viper")
+	// err = viper.BindPFlag("projectbase", rootCmd.PersistentFlags().Lookup("projectbase"))
+	// util.HandleError(err, "Unable to bind flag to viper")
 }
 
 func initConfig() {

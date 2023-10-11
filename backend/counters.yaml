@@ -1,0 +1,25 @@
+counters:
+    apimisses: 0
+    cachehits: 0
+    cachemisses: 0
+    daily:
+        count: 0
+        max: 900
+        nextreset: "2023-10-11T23:47:17Z"
+        startdate: "2023-10-10T23:47:17Z"
+    enabled: true
+    hourly:
+        count: 0
+        max: 900
+        nextreset: 2023-10-11T00:47:17.215480477Z
+        startdate: 2023-10-10T23:47:17.215480287Z
+    lifetime:
+        count: 0
+        max: 0
+        nextreset: 2023-10-10T23:47:17.215481197Z
+        startdate: 2023-10-10T23:47:17.215480987Z
+    monthly:
+        count: 0
+        max: 30000
+        nextreset: "2023-11-10T23:47:17Z"
+        startdate: "2023-10-10T23:47:17Z"

@@ -23,7 +23,6 @@ var instances map[string]RedisInstance
 
 func init() {
 	util.LogDebug("[cache] Initialising cache service")
-
 	instances = make(map[string]RedisInstance)
 }
 

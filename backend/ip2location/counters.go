@@ -161,15 +161,6 @@ func InitialiseCounters(filename string, monthly int, daily int, hourly int, for
 	CountersProvider.Set("counters.cachemisses", 0)
 	CountersProvider.Set("counters.enabled", true)
 
-	// CountersProvider.Set("counters.startdate", time.Now().UTC().Format(time.RFC3339))
-	// CountersProvider.Set("counters.lastreset", time.Now().UTC().Format(time.RFC3339))
-	// CountersProvider.Set("counters.nextreset", time.Now().UTC().AddDate(0, 1, 0).Format(time.RFC3339))
-	// CountersProvider.Set("counters.lastcheck", time.Now().UTC().AddDate(0, 1, 0).Format(time.RFC3339))
-	// CountersProvider.Set("counters.count", 0)
-	// CountersProvider.Set("counters.dailycount", 0)
-	// CountersProvider.Set("counters.lifetime", 0)
-	// CountersProvider.Set("counters.enabled", true)
-
 	log.Printf("Creating the local counters file: %s", localFile)
 
 	err = CountersProvider.SafeWriteConfigAs(localFile)
