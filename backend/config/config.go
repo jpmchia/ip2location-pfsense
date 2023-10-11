@@ -46,7 +46,7 @@ func init() {
 
 func Configure() {
 	// Load the default configuration
-	defaultConfig = initViperConfig(appName)
+	defaultConfig = initViperConfig(appNamePrefix)
 
 	// Set and load additional configuration locations
 	setConfigLocations(CfgFile)
